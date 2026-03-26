@@ -514,6 +514,40 @@
         max-width: 500px
       }
     }
+
+    /* ── Footer ── */
+    .dev-footer {
+      position: absolute;
+      bottom: 20px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      z-index: 10;
+      opacity: 0;
+      animation: fadeIn 1s forwards 1.5s;
+    }
+
+    .dev-footer:hover {
+      opacity: 0.9;
+    }
+
+    .dev-footer a {
+      color: var(--accent);
+      text-decoration: none;
+      transition: text-shadow 0.3s, color 0.3s;
+    }
+
+    .dev-footer a:hover {
+      color: var(--purple);
+      text-shadow: 0 0 8px rgba(168, 85, 247, 0.5);
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 0.5; }
+    }
   </style>
 </head>
 
@@ -644,6 +678,11 @@
       <button class="btn-primary" type="submit" id="regBtn">Create Account</button>
       <div class="error-pill" id="regError"></div>
     </form>
+  </div>
+
+  <!-- Footer -->
+  <div class="dev-footer">
+    Developed By Zeeman Khan • Instagram: <a href="https://instagram.com/zeemankhann" target="_blank" rel="noopener noreferrer">@zeemankhann</a>
   </div>
 
   <script type="module">
