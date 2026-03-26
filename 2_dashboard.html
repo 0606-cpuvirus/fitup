@@ -170,7 +170,7 @@ h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif}
 import { getCurrentUser, account, databases, ID, Query,
          DATABASE_ID, COL_USERS_PROFILE, COL_DAILY_LOGS, COL_MEAL_ENTRIES,
          calcBMI, cacheGet, cacheSet, cacheClear, todayStr, formatDateHuman,
-         userPermissions } from './appwrite.js';
+         userPermissions, getAvatarUrl } from './appwrite.js';
 
 // ── Toast ──
 function showToast(msg, type='success') {
@@ -222,7 +222,8 @@ function countUp(el, target, suffix='') {
 
   document.getElementById('greeting').textContent = `Hey, ${profile.name} 👋`;
   const ac = document.getElementById('avatarCircle');
-  if (profile.avatar_url) { ac.innerHTML = `<img src="${profile.avatar_url}" alt="avatar">`; }
+  const avatarSrc = getAvatarUrl(profile.avatar_url);
+  if (avatarSrc) { ac.innerHTML = `<img src="${avatarSrc}" alt="avatar" onerror="this.onerror=null;this.parentElement.textContent='${profile.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}';">`; }
   else { ac.textContent = profile.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
 
   // Daily log

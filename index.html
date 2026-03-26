@@ -1,338 +1,712 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>FitUp — Login / Register</title>
-<meta name="description" content="FitUp personal calorie & nutrition tracker. Login or register to start tracking your fitness goals.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
-<style>
-:root{--bg:#0a0a0f;--surface:#12121a;--elevated:#1a1a26;--border:rgba(255,255,255,0.05);--accent:#7c5cfc;--green:#22d3a0;--amber:#f59e0b;--red:#f43f5e;--purple:#a855f7;--text:#f0f0ff;--muted:#6b6b8a}
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;overflow-x:hidden}
-h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>FitUp — Login / Register</title>
+  <meta name="description"
+    content="FitUp personal calorie & nutrition tracker. Login or register to start tracking your fitness goals.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --elevated: #1a1a26;
+      --border: rgba(255, 255, 255, 0.05);
+      --accent: #7c5cfc;
+      --green: #22d3a0;
+      --amber: #f59e0b;
+      --red: #f43f5e;
+      --purple: #a855f7;
+      --text: #f0f0ff;
+      --muted: #6b6b8a
+    }
 
-/* ── Ambient background ── */
-.page-bg{position:fixed;inset:0;z-index:0;pointer-events:none}
-.grid-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(124,92,252,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(124,92,252,.04) 1px,transparent 1px);background-size:40px 40px;opacity:0}
-.ambient-glow{position:absolute;left:50%;top:30%;transform:translate(-50%,-50%);width:600px;height:300px;border-radius:50%;background:radial-gradient(ellipse at center,rgba(124,92,252,.14) 0%,rgba(168,85,247,.05) 40%,transparent 70%);opacity:0}
-.scanline{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(124,92,252,.25),rgba(168,85,247,.25),transparent);top:-2px;z-index:20}
-.particles{position:absolute;inset:0}
-.spark{position:absolute;width:3px;height:3px;border-radius:50%;opacity:0}
-.spark.v{background:var(--accent)}.spark.g{background:var(--green)}.spark.p{background:var(--purple)}
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box
+    }
 
-/* ── Container ── */
-.container{width:100%;max-width:430px;margin:0 auto;position:relative;z-index:10}
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      overflow-x: hidden
+    }
 
-/* ── Logo Card ── */
-.logo-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px 24px 20px;margin-bottom:20px;position:relative;overflow:hidden;box-shadow:0 0 0 1px rgba(124,92,252,.08),0 20px 60px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.03);opacity:0;transform:translateY(20px)}
-.logo-card::before,.logo-card::after{content:'';position:absolute;width:14px;height:14px;border-color:rgba(124,92,252,.4);border-style:solid}
-.logo-card::before{top:10px;left:10px;border-width:2px 0 0 2px;border-radius:3px 0 0 0}
-.logo-card::after{bottom:10px;right:10px;border-width:0 2px 2px 0;border-radius:0 0 3px 0}
-.logo-tagline{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:5px;color:var(--muted);text-transform:uppercase;text-align:center;opacity:0;transform:translateY(6px);margin-bottom:10px}
-.logo-row{display:flex;align-items:flex-end;justify-content:center;line-height:1}
-.letter-fit{display:inline-block;font-family:'Bebas Neue',cursive;font-size:clamp(56px,12vw,88px);color:var(--text);opacity:0;transform:translateY(40px) scaleY(.4);transform-origin:bottom center;line-height:1}
-.word-up{display:flex;align-items:flex-end;margin-left:6px;position:relative}
-.letter-up{display:inline-block;font-family:'Bebas Neue',cursive;font-size:clamp(56px,12vw,88px);color:var(--accent);opacity:0;transform:translateY(50px) scaleY(.3);transform-origin:bottom center;line-height:1;text-shadow:0 0 20px rgba(124,92,252,.6),0 0 50px rgba(124,92,252,.25)}
-.up-badge{position:absolute;top:-8px;right:-18px;width:20px;height:20px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;transform:scale(0) rotate(-45deg);box-shadow:0 0 12px rgba(124,92,252,.6)}
-.up-badge svg{width:10px;height:10px}
-.logo-divider{width:100%;height:1px;background:linear-gradient(90deg,transparent,rgba(124,92,252,.4),rgba(168,85,247,.4),rgba(34,211,160,.25),transparent);margin:12px 0 10px;opacity:0;transform:scaleX(0);transform-origin:center}
+    h1,
+    h2,
+    h3,
+    h4 {
+      font-family: 'Space Grotesk', sans-serif
+    }
 
-/* ── EKG ── */
-.ekg-wrap{width:100%;height:32px;opacity:0;position:relative;margin-bottom:6px}
-.ekg-wrap svg{width:100%;height:100%;overflow:visible}
-.ekg-path{fill:none;stroke:url(#ekgGrad);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 4px rgba(124,92,252,.5))}
-.ekg-dot{fill:var(--green);filter:drop-shadow(0 0 5px var(--green));opacity:0}
+    /* ── Ambient background ── */
+    .page-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none
+    }
 
-/* ── Stats row ── */
-.logo-stats{display:flex;gap:0;justify-content:center;margin-top:10px;opacity:0;transform:translateY(4px)}
-.logo-stat{flex:1;text-align:center;padding:6px 4px;position:relative}
-.logo-stat:not(:last-child)::after{content:'';position:absolute;right:0;top:20%;height:60%;width:1px;background:var(--border)}
-.stat-val{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.5px}
-.stat-lbl{font-family:'Space Mono',monospace;font-size:7px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-top:2px}
-.c1{color:var(--accent);text-shadow:0 0 10px rgba(124,92,252,.5)}
-.c2{color:var(--green);text-shadow:0 0 10px rgba(34,211,160,.4)}
-.c3{color:var(--amber);text-shadow:0 0 10px rgba(245,158,11,.4)}
-.logo-subtitle{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:4px;color:var(--muted);text-transform:uppercase;text-align:center;margin-top:10px;opacity:0;transform:translateY(4px)}
+    .grid-bg {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(124, 92, 252, .04) 1px, transparent 1px), linear-gradient(90deg, rgba(124, 92, 252, .04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      opacity: 0
+    }
 
-/* ── Auth forms ── */
-.toggle-wrapper{display:flex;justify-content:center;margin:0 0 18px;position:relative}
-.toggle-bg{display:flex;background:var(--elevated);border-radius:14px;padding:4px;position:relative;border:1px solid var(--border);overflow:hidden}
-.toggle-btn{position:relative;z-index:2;padding:10px 32px;border-radius:12px;cursor:pointer;font-weight:600;font-size:.92rem;transition:color .2s;background:none;border:none;color:var(--muted);font-family:'DM Sans',sans-serif}
-.toggle-btn.active{color:#fff}
-.toggle-pill{position:absolute;top:4px;left:4px;height:calc(100% - 8px);width:calc(50% - 4px);background:var(--accent);border-radius:12px;z-index:1;transition:none}
-.form-group{margin-bottom:14px;opacity:0}
-.form-group label{display:block;font-size:.82rem;color:var(--muted);margin-bottom:6px;font-weight:500}
-.form-group input,.form-group select{width:100%;padding:13px 16px;background:var(--elevated);border:1px solid var(--border);border-radius:14px;color:var(--text);font-size:.95rem;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s}
-.form-group input:focus,.form-group select:focus{border-color:var(--accent)}
-.form-group select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6b8a' stroke-width='2' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 16px center}
-.form-row{display:flex;gap:10px}
-.form-row .form-group{flex:1}
-.btn-primary{width:100%;padding:14px;border:none;border-radius:14px;background:var(--accent);color:#fff;font-size:1rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;opacity:0;position:relative;overflow:hidden;transition:filter .2s}
-.btn-primary:hover{filter:brightness(1.15)}
-.btn-primary:disabled{opacity:.6;cursor:not-allowed}
-.error-pill{background:rgba(244,63,94,.15);color:var(--red);padding:10px 16px;border-radius:12px;text-align:center;font-size:.88rem;margin-top:12px;display:none;opacity:0;transform:translateY(-8px)}
-.error-pill.show{display:block}
-.spinner{display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px}
-@keyframes spin{to{transform:rotate(360deg)}}
+    .ambient-glow {
+      position: absolute;
+      left: 50%;
+      top: 30%;
+      transform: translate(-50%, -50%);
+      width: 600px;
+      height: 300px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse at center, rgba(124, 92, 252, .14) 0%, rgba(168, 85, 247, .05) 40%, transparent 70%);
+      opacity: 0
+    }
 
-/* ── Responsive ── */
-@media(min-width:768px){.container{max-width:480px}}
-@media(min-width:1024px){.container{max-width:500px}}
-</style>
+    .scanline {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(124, 92, 252, .25), rgba(168, 85, 247, .25), transparent);
+      top: -2px;
+      z-index: 20
+    }
+
+    .particles {
+      position: absolute;
+      inset: 0
+    }
+
+    .spark {
+      position: absolute;
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      opacity: 0
+    }
+
+    .spark.v {
+      background: var(--accent)
+    }
+
+    .spark.g {
+      background: var(--green)
+    }
+
+    .spark.p {
+      background: var(--purple)
+    }
+
+    /* ── Container ── */
+    .container {
+      width: 100%;
+      max-width: 430px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 10
+    }
+
+    /* ── Logo Card ── */
+    .logo-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px 24px 20px;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 0 1px rgba(124, 92, 252, .08), 0 20px 60px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .03);
+      opacity: 0;
+      transform: translateY(20px)
+    }
+
+    .logo-card::before,
+    .logo-card::after {
+      content: '';
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-color: rgba(124, 92, 252, .4);
+      border-style: solid
+    }
+
+    .logo-card::before {
+      top: 10px;
+      left: 10px;
+      border-width: 2px 0 0 2px;
+      border-radius: 3px 0 0 0
+    }
+
+    .logo-card::after {
+      bottom: 10px;
+      right: 10px;
+      border-width: 0 2px 2px 0;
+      border-radius: 0 0 3px 0
+    }
+
+    .logo-tagline {
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 5px;
+      color: var(--muted);
+      text-transform: uppercase;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(6px);
+      margin-bottom: 10px
+    }
+
+    .logo-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      line-height: 1
+    }
+
+    .letter-fit {
+      display: inline-block;
+      font-family: 'Bebas Neue', cursive;
+      font-size: clamp(56px, 12vw, 88px);
+      color: var(--text);
+      opacity: 0;
+      transform: translateY(40px) scaleY(.4);
+      transform-origin: bottom center;
+      line-height: 1
+    }
+
+    .word-up {
+      display: flex;
+      align-items: flex-end;
+      margin-left: 6px;
+      position: relative
+    }
+
+    .letter-up {
+      display: inline-block;
+      font-family: 'Bebas Neue', cursive;
+      font-size: clamp(56px, 12vw, 88px);
+      color: var(--accent);
+      opacity: 0;
+      transform: translateY(50px) scaleY(.3);
+      transform-origin: bottom center;
+      line-height: 1;
+      text-shadow: 0 0 20px rgba(124, 92, 252, .6), 0 0 50px rgba(124, 92, 252, .25)
+    }
+
+    .up-badge {
+      position: absolute;
+      top: -8px;
+      right: -18px;
+      width: 20px;
+      height: 20px;
+      background: var(--accent);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: scale(0) rotate(-45deg);
+      box-shadow: 0 0 12px rgba(124, 92, 252, .6)
+    }
+
+    .up-badge svg {
+      width: 10px;
+      height: 10px
+    }
+
+    .logo-divider {
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(124, 92, 252, .4), rgba(168, 85, 247, .4), rgba(34, 211, 160, .25), transparent);
+      margin: 12px 0 10px;
+      opacity: 0;
+      transform: scaleX(0);
+      transform-origin: center
+    }
+
+    /* ── EKG ── */
+    .ekg-wrap {
+      width: 100%;
+      height: 32px;
+      opacity: 0;
+      position: relative;
+      margin-bottom: 6px
+    }
+
+    .ekg-wrap svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible
+    }
+
+    .ekg-path {
+      fill: none;
+      stroke: url(#ekgGrad);
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      filter: drop-shadow(0 0 4px rgba(124, 92, 252, .5))
+    }
+
+    .ekg-dot {
+      fill: var(--green);
+      filter: drop-shadow(0 0 5px var(--green));
+      opacity: 0
+    }
+
+    /* ── Stats row ── */
+    .logo-stats {
+      display: flex;
+      gap: 0;
+      justify-content: center;
+      margin-top: 10px;
+      opacity: 0;
+      transform: translateY(4px)
+    }
+
+    .logo-stat {
+      flex: 1;
+      text-align: center;
+      padding: 6px 4px;
+      position: relative
+    }
+
+    .logo-stat:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 20%;
+      height: 60%;
+      width: 1px;
+      background: var(--border)
+    }
+
+    .stat-val {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .5px
+    }
+
+    .stat-lbl {
+      font-family: 'Space Mono', monospace;
+      font-size: 7px;
+      letter-spacing: 2px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-top: 2px
+    }
+
+    .c1 {
+      color: var(--accent);
+      text-shadow: 0 0 10px rgba(124, 92, 252, .5)
+    }
+
+    .c2 {
+      color: var(--green);
+      text-shadow: 0 0 10px rgba(34, 211, 160, .4)
+    }
+
+    .c3 {
+      color: var(--amber);
+      text-shadow: 0 0 10px rgba(245, 158, 11, .4)
+    }
+
+    .logo-subtitle {
+      font-family: 'Space Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 4px;
+      color: var(--muted);
+      text-transform: uppercase;
+      text-align: center;
+      margin-top: 10px;
+      opacity: 0;
+      transform: translateY(4px)
+    }
+
+    /* ── Auth forms ── */
+    .toggle-wrapper {
+      display: flex;
+      justify-content: center;
+      margin: 0 0 18px;
+      position: relative
+    }
+
+    .toggle-bg {
+      display: flex;
+      background: var(--elevated);
+      border-radius: 14px;
+      padding: 4px;
+      position: relative;
+      border: 1px solid var(--border);
+      overflow: hidden
+    }
+
+    .toggle-btn {
+      position: relative;
+      z-index: 2;
+      padding: 10px 32px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: .92rem;
+      transition: color .2s;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif
+    }
+
+    .toggle-btn.active {
+      color: #fff
+    }
+
+    .toggle-pill {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      height: calc(100% - 8px);
+      width: calc(50% - 4px);
+      background: var(--accent);
+      border-radius: 12px;
+      z-index: 1;
+      transition: none
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+      opacity: 0
+    }
+
+    .form-group label {
+      display: block;
+      font-size: .82rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-weight: 500
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 13px 16px;
+      background: var(--elevated);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      color: var(--text);
+      font-size: .95rem;
+      font-family: 'DM Sans', sans-serif;
+      outline: none;
+      transition: border-color .2s
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: var(--accent)
+    }
+
+    .form-group select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6b8a' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 16px center
+    }
+
+    .form-row {
+      display: flex;
+      gap: 10px
+    }
+
+    .form-row .form-group {
+      flex: 1
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 14px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      opacity: 0;
+      position: relative;
+      overflow: hidden;
+      transition: filter .2s
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.15)
+    }
+
+    .btn-primary:disabled {
+      opacity: .6;
+      cursor: not-allowed
+    }
+
+    .error-pill {
+      background: rgba(244, 63, 94, .15);
+      color: var(--red);
+      padding: 10px 16px;
+      border-radius: 12px;
+      text-align: center;
+      font-size: .88rem;
+      margin-top: 12px;
+      display: none;
+      opacity: 0;
+      transform: translateY(-8px)
+    }
+
+    .error-pill.show {
+      display: block
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255, 255, 255, .3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    /* ── Responsive ── */
+    @media(min-width:768px) {
+      .container {
+        max-width: 480px
+      }
+    }
+
+    @media(min-width:1024px) {
+      .container {
+        max-width: 500px
+      }
+    }
+  </style>
 </head>
+
 <body>
 
-<!-- Background effects -->
-<div class="page-bg">
-  <div class="grid-bg" id="gridBg"></div>
-  <div class="ambient-glow" id="ambientGlow"></div>
-  <div class="scanline" id="scanline"></div>
-  <div class="particles" id="particles"></div>
-</div>
+  <!-- Background effects -->
+  <div class="page-bg">
+    <div class="grid-bg" id="gridBg"></div>
+    <div class="ambient-glow" id="ambientGlow"></div>
+    <div class="scanline" id="scanline"></div>
+    <div class="particles" id="particles"></div>
+  </div>
 
-<div class="container">
+  <div class="container">
 
-  <!-- ═══ ANIMATED LOGO CARD ═══ -->
-  <div class="logo-card" id="logoCard">
-    <div class="logo-tagline" id="logoTagline">Calorie Tracking · Weight Management</div>
-    <div class="logo-row">
-      <div style="display:flex;align-items:flex-end">
-        <span class="letter-fit" id="lF">F</span>
-        <span class="letter-fit" id="lI">I</span>
-        <span class="letter-fit" id="lT">T</span>
-      </div>
-      <div class="word-up">
-        <span class="letter-up" id="lU">U</span>
-        <span class="letter-up" id="lP">P</span>
-        <div class="up-badge" id="upBadge">
-          <svg viewBox="0 0 14 14" fill="none"><path d="M7 11V3M3 7l4-4 4 4" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <!-- ═══ ANIMATED LOGO CARD ═══ -->
+    <div class="logo-card" id="logoCard">
+      <div class="logo-tagline" id="logoTagline">Calorie & Weight Management</div>
+      <div class="logo-row">
+        <div style="display:flex;align-items:flex-end">
+          <span class="letter-fit" id="lF">F</span>
+          <span class="letter-fit" id="lI">I</span>
+          <span class="letter-fit" id="lT">T</span>
+        </div>
+        <div class="word-up">
+          <span class="letter-up" id="lU">U</span>
+          <span class="letter-up" id="lP">P</span>
+          <div class="up-badge" id="upBadge">
+            <svg viewBox="0 0 14 14" fill="none">
+              <path d="M7 11V3M3 7l4-4 4 4" stroke="#fff" stroke-width="2.2" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+          </div>
         </div>
       </div>
+      <div class="logo-divider" id="logoDivider"></div>
+      <div class="ekg-wrap" id="ekgWrap">
+        <svg viewBox="0 0 480 32" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="ekgGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#7c5cfc" />
+              <stop offset="50%" stop-color="#a855f7" />
+              <stop offset="100%" stop-color="#22d3a0" />
+            </linearGradient>
+          </defs>
+          <path class="ekg-path" id="ekgPath"
+            d="M0,16 L70,16 L85,16 L96,3 L106,30 L116,1 L128,30 L138,16 L155,16 L235,16 L250,16 L261,3 L271,30 L281,1 L293,30 L303,16 L320,16 L400,16 L415,16 L426,3 L436,30 L446,1 L458,30 L468,16 L480,16" />
+          <circle class="ekg-dot" id="ekgDot" r="3" cx="0" cy="16" />
+        </svg>
+      </div>
+      <div class="logo-subtitle" id="logoSubtitle">Track · Burn · Rise</div>
     </div>
-    <div class="logo-divider" id="logoDivider"></div>
-    <div class="ekg-wrap" id="ekgWrap">
-      <svg viewBox="0 0 480 32" preserveAspectRatio="none">
-        <defs>
-          <linearGradient id="ekgGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#7c5cfc"/>
-            <stop offset="50%" stop-color="#a855f7"/>
-            <stop offset="100%" stop-color="#22d3a0"/>
-          </linearGradient>
-        </defs>
-        <path class="ekg-path" id="ekgPath" d="M0,16 L70,16 L85,16 L96,3 L106,30 L116,1 L128,30 L138,16 L155,16 L235,16 L250,16 L261,3 L271,30 L281,1 L293,30 L303,16 L320,16 L400,16 L415,16 L426,3 L436,30 L446,1 L458,30 L468,16 L480,16"/>
-        <circle class="ekg-dot" id="ekgDot" r="3" cx="0" cy="16"/>
-      </svg>
+
+    <!-- ═══ AUTH TOGGLE ═══ -->
+    <div class="toggle-wrapper" style="opacity:0" id="toggleWrap">
+      <div class="toggle-bg" id="toggleBg">
+        <div class="toggle-pill" id="togglePill"></div>
+        <button class="toggle-btn active" id="btnLogin" type="button">Login</button>
+        <button class="toggle-btn" id="btnRegister" type="button">Register</button>
+      </div>
     </div>
-    <div class="logo-stats" id="logoStats">
-      <div class="logo-stat"><div class="stat-val c1" id="sv1">0</div><div class="stat-lbl">kcal / day</div></div>
-      <div class="logo-stat"><div class="stat-val c2" id="sv2">0%</div><div class="stat-lbl">goals hit</div></div>
-      <div class="logo-stat"><div class="stat-val c3" id="sv3">0.0</div><div class="stat-lbl">kg lost</div></div>
-    </div>
-    <div class="logo-subtitle" id="logoSubtitle">Track · Burn · Rise</div>
+
+    <!-- LOGIN FORM -->
+    <form id="loginForm" autocomplete="on">
+      <div class="form-group"><label>Email</label><input type="email" id="loginEmail" required
+          placeholder="you@email.com"></div>
+      <div class="form-group"><label>Password</label><input type="password" id="loginPass" required
+          placeholder="••••••••" minlength="8"></div>
+      <button class="btn-primary" type="submit" id="loginBtn">Login</button>
+      <div class="error-pill" id="loginError"></div>
+    </form>
+
+    <!-- REGISTER FORM -->
+    <form id="registerForm" style="display:none" autocomplete="on">
+      <div class="form-group"><label>Full Name</label><input type="text" id="regName" required placeholder="Ahmed Khan">
+      </div>
+      <div class="form-group"><label>Email</label><input type="email" id="regEmail" required
+          placeholder="you@email.com"></div>
+      <div class="form-group"><label>Password</label><input type="password" id="regPass" required placeholder="••••••••"
+          minlength="8"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Age</label><input type="number" id="regAge" required min="1" max="120"
+            placeholder="25"></div>
+        <div class="form-group"><label>Height (cm)</label><input type="number" id="regHeight" required min="50"
+            max="300" placeholder="175"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Current Weight (kg)</label><input type="number" id="regWeight" required min="1"
+            max="500" step="0.1" placeholder="70"></div>
+        <div class="form-group"><label>Target Weight (kg)</label><input type="number" id="regTarget" required min="1"
+            max="500" step="0.1" placeholder="65"></div>
+      </div>
+      <div class="form-group">
+        <label>Activity Level</label>
+        <select id="regActivity" required>
+          <option value="" disabled selected>Select level</option>
+          <option value="sedentary">Sedentary (little exercise)</option>
+          <option value="light">Light (1-3 days/week)</option>
+          <option value="moderate">Moderate (3-5 days/week)</option>
+          <option value="active">Active (6-7 days/week)</option>
+          <option value="very_active">Very Active (intense daily)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Goal</label>
+        <select id="regGoal" required>
+          <option value="" disabled selected>Select goal</option>
+          <option value="lose">Lose Weight</option>
+          <option value="maintain">Maintain Weight</option>
+          <option value="gain">Gain Weight</option>
+        </select>
+      </div>
+      <button class="btn-primary" type="submit" id="regBtn">Create Account</button>
+      <div class="error-pill" id="regError"></div>
+    </form>
   </div>
 
-  <!-- ═══ AUTH TOGGLE ═══ -->
-  <div class="toggle-wrapper" style="opacity:0" id="toggleWrap">
-    <div class="toggle-bg" id="toggleBg">
-      <div class="toggle-pill" id="togglePill"></div>
-      <button class="toggle-btn active" id="btnLogin" type="button">Login</button>
-      <button class="toggle-btn" id="btnRegister" type="button">Register</button>
-    </div>
-  </div>
+  <script type="module">
+    import {
+      account, databases, ID, Query, Permission, Role,
+      DATABASE_ID, COL_USERS_PROFILE, COL_FOOD_ITEMS,
+      calcTDEE, calcTargets, PRESET_FOODS, userPermissions
+    } from './appwrite.js';
 
-  <!-- LOGIN FORM -->
-  <form id="loginForm" autocomplete="on">
-    <div class="form-group"><label>Email</label><input type="email" id="loginEmail" required placeholder="you@email.com"></div>
-    <div class="form-group"><label>Password</label><input type="password" id="loginPass" required placeholder="••••••••" minlength="8"></div>
-    <button class="btn-primary" type="submit" id="loginBtn">Login</button>
-    <div class="error-pill" id="loginError"></div>
-  </form>
+    // ── Check if already logged in ──
+    (async () => {
+      try {
+        await account.get();
+        window.location.href = '2_dashboard.html';
+      } catch (_) { /* not logged in, stay here */ }
+    })();
 
-  <!-- REGISTER FORM -->
-  <form id="registerForm" style="display:none" autocomplete="on">
-    <div class="form-group"><label>Full Name</label><input type="text" id="regName" required placeholder="Ahmed Khan"></div>
-    <div class="form-group"><label>Email</label><input type="email" id="regEmail" required placeholder="you@email.com"></div>
-    <div class="form-group"><label>Password</label><input type="password" id="regPass" required placeholder="••••••••" minlength="8"></div>
-    <div class="form-row">
-      <div class="form-group"><label>Age</label><input type="number" id="regAge" required min="1" max="120" placeholder="25"></div>
-      <div class="form-group"><label>Height (cm)</label><input type="number" id="regHeight" required min="50" max="300" placeholder="175"></div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label>Current Weight (kg)</label><input type="number" id="regWeight" required min="1" max="500" step="0.1" placeholder="70"></div>
-      <div class="form-group"><label>Target Weight (kg)</label><input type="number" id="regTarget" required min="1" max="500" step="0.1" placeholder="65"></div>
-    </div>
-    <div class="form-group">
-      <label>Activity Level</label>
-      <select id="regActivity" required>
-        <option value="" disabled selected>Select level</option>
-        <option value="sedentary">Sedentary (little exercise)</option>
-        <option value="light">Light (1-3 days/week)</option>
-        <option value="moderate">Moderate (3-5 days/week)</option>
-        <option value="active">Active (6-7 days/week)</option>
-        <option value="very_active">Very Active (intense daily)</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>Goal</label>
-      <select id="regGoal" required>
-        <option value="" disabled selected>Select goal</option>
-        <option value="lose">Lose Weight</option>
-        <option value="maintain">Maintain Weight</option>
-        <option value="gain">Gain Weight</option>
-      </select>
-    </div>
-    <button class="btn-primary" type="submit" id="regBtn">Create Account</button>
-    <div class="error-pill" id="regError"></div>
-  </form>
-</div>
+    // ═══════════════════════════════════════════
+    //  LOGO ANIMATION
+    // ═══════════════════════════════════════════
 
-<script type="module">
-import { account, databases, ID, Query, Permission, Role,
-         DATABASE_ID, COL_USERS_PROFILE, COL_FOOD_ITEMS,
-         calcTDEE, calcTargets, PRESET_FOODS, userPermissions } from './appwrite.js';
-
-// ── Check if already logged in ──
-(async () => {
-  try {
-    await account.get();
-    window.location.href = '2_dashboard.html';
-  } catch (_) { /* not logged in, stay here */ }
-})();
-
-// ═══════════════════════════════════════════
-//  LOGO ANIMATION
-// ═══════════════════════════════════════════
-
-// Particles
-const colors = ['v','g','p'];
-const pc = document.getElementById('particles');
-for (let i = 0; i < 40; i++) {
-  const s = document.createElement('div');
-  s.className = 'spark ' + colors[i % 3];
-  s.style.left = Math.random() * 100 + 'vw';
-  s.style.top = Math.random() * 100 + 'vh';
-  pc.appendChild(s);
-}
-
-// EKG setup
-const ekgPath = document.getElementById('ekgPath');
-const pathLen = ekgPath.getTotalLength();
-ekgPath.style.strokeDasharray = pathLen;
-ekgPath.style.strokeDashoffset = pathLen;
-
-// Counter helper
-function countUp(el, target, duration, decimals = 0, suffix = '') {
-  anime({
-    targets: { v: 0 }, v: target, duration, easing: 'easeOutExpo',
-    update(a) {
-      const v = a.animations[0].currentValue;
-      el.textContent = (decimals ? parseFloat(v).toFixed(decimals) : Math.round(v).toLocaleString()) + suffix;
+    // Particles
+    const colors = ['v', 'g', 'p'];
+    const pc = document.getElementById('particles');
+    for (let i = 0; i < 40; i++) {
+      const s = document.createElement('div');
+      s.className = 'spark ' + colors[i % 3];
+      s.style.left = Math.random() * 100 + 'vw';
+      s.style.top = Math.random() * 100 + 'vh';
+      pc.appendChild(s);
     }
-  });
-}
 
-// Master Timeline
-const tl = anime.timeline({ easing: 'easeOutExpo' });
-
-tl.add({ targets: '#gridBg', opacity: [0, 1], duration: 600 });
-tl.add({ targets: '#ambientGlow', opacity: [0, 1], duration: 700 }, '-=400');
-tl.add({ targets: '#scanline', top: ['0vh', '106vh'], duration: 900, easing: 'linear' }, '-=300');
-tl.add({ targets: '#logoCard', opacity: [0, 1], translateY: [20, 0], duration: 500, easing: 'easeOutCubic' }, '-=600');
-tl.add({
-  targets: ['#lF', '#lI', '#lT'],
-  opacity: [0, 1], translateY: [40, 0], scaleY: [0.4, 1],
-  delay: anime.stagger(55), duration: 600, easing: 'easeOutBack'
-}, '-=300');
-tl.add({
-  targets: ['#lU', '#lP'],
-  opacity: [0, 1], translateY: [50, 0], scaleY: [0.3, 1],
-  delay: anime.stagger(45), duration: 650, easing: 'easeOutBack'
-}, '-=420');
-tl.add({
-  targets: '#upBadge',
-  opacity: [0, 1], scale: [0, 1], rotate: [-45, 0],
-  duration: 400, easing: 'easeOutBack'
-}, '-=300');
-tl.add({ targets: '#logoTagline', opacity: [0, 1], translateY: [6, 0], duration: 400 }, '-=200');
-tl.add({ targets: '#logoDivider', opacity: [0, 1], scaleX: [0, 1], duration: 500, easing: 'easeInOutSine' }, '-=150');
-tl.add({ targets: '#ekgWrap', opacity: [0, 1], duration: 200 }, '-=200');
-tl.add({
-  targets: '#ekgPath',
-  strokeDashoffset: [pathLen, 0], duration: 900, easing: 'easeInOutSine'
-}, '-=100');
-tl.add({
-  targets: '#ekgDot', opacity: [0, 1, 1, 0],
-  keyframes: (() => {
-    const pts = [];
-    for (let i = 0; i <= 50; i++) {
-      const pt = ekgPath.getPointAtLength((i / 50) * pathLen);
-      pts.push({ cx: pt.x, cy: pt.y });
-    }
-    return pts;
-  })(),
-  duration: 900, easing: 'linear'
-}, '-=900');
-tl.add({ targets: '#logoStats', opacity: [0, 1], translateY: [4, 0], duration: 400 }, '-=200');
-tl.add({ targets: '#logoSubtitle', opacity: [0, 1], translateY: [4, 0], duration: 350 }, '-=150');
-tl.add({
-  targets: '.spark',
-  opacity: [{ value: [0, 0.8], duration: 250 }, { value: 0, duration: 550 }],
-  translateY: () => anime.random(-60, -160) + 'px',
-  translateX: () => anime.random(-50, 50) + 'px',
-  scale: [1, 0.1],
-  delay: anime.stagger(18, { start: 0 }), duration: 800, easing: 'easeOutExpo'
-}, '-=900');
-
-// Stat counters
-tl.add({
-  duration: 1,
-  begin() {
-    countUp(document.getElementById('sv1'), 2140, 1200, 0);
-    countUp(document.getElementById('sv2'), 98, 1000, 0, '%');
-    countUp(document.getElementById('sv3'), 12.4, 1100, 1);
-  }
-}, '-=500');
-
-// Auth form entrance (staggered after logo)
-tl.add({ targets: '#toggleWrap', opacity: [0, 1], translateY: [10, 0], duration: 400 }, '-=200');
-tl.add({
-  targets: '#loginForm .form-group, #loginForm .btn-primary',
-  translateY: [15, 0], opacity: [0, 1],
-  delay: anime.stagger(50), duration: 350, easing: 'easeOutExpo'
-});
-
-// Idle loops after timeline
-tl.finished.then(() => {
-  // UP glow pulse
-  anime({
-    targets: ['#lU', '#lP'],
-    textShadow: [
-      '0 0 20px rgba(124,92,252,.6), 0 0 50px rgba(124,92,252,.25)',
-      '0 0 40px rgba(124,92,252,.9), 0 0 100px rgba(168,85,247,.45)',
-      '0 0 20px rgba(124,92,252,.6), 0 0 50px rgba(124,92,252,.25)',
-    ],
-    delay: anime.stagger(100), duration: 2000, loop: true, easing: 'easeInOutSine'
-  });
-
-  // Ambient glow breathing
-  anime({
-    targets: '#ambientGlow', opacity: [1, 0.4, 1], scale: [1, 1.05, 1],
-    duration: 3500, loop: true, easing: 'easeInOutSine'
-  });
-
-  // EKG loop
-  function loopEkg() {
+    // EKG setup
+    const ekgPath = document.getElementById('ekgPath');
+    const pathLen = ekgPath.getTotalLength();
+    ekgPath.style.strokeDasharray = pathLen;
     ekgPath.style.strokeDashoffset = pathLen;
-    anime({
-      targets: '#ekgPath', strokeDashoffset: [pathLen, 0],
-      duration: 1100, easing: 'easeInOutSine',
-      complete: () => setTimeout(loopEkg, 2800)
-    });
-    anime({
+
+    // Counter helper
+    function countUp(el, target, duration, decimals = 0, suffix = '') {
+      anime({
+        targets: { v: 0 }, v: target, duration, easing: 'easeOutExpo',
+        update(a) {
+          const v = a.animations[0].currentValue;
+          el.textContent = (decimals ? parseFloat(v).toFixed(decimals) : Math.round(v).toLocaleString()) + suffix;
+        }
+      });
+    }
+
+    // Master Timeline
+    const tl = anime.timeline({ easing: 'easeOutExpo' });
+
+    tl.add({ targets: '#gridBg', opacity: [0, 1], duration: 600 });
+    tl.add({ targets: '#ambientGlow', opacity: [0, 1], duration: 700 }, '-=400');
+    tl.add({ targets: '#scanline', top: ['0vh', '106vh'], duration: 900, easing: 'linear' }, '-=300');
+    tl.add({ targets: '#logoCard', opacity: [0, 1], translateY: [20, 0], duration: 500, easing: 'easeOutCubic' }, '-=600');
+    tl.add({
+      targets: ['#lF', '#lI', '#lT'],
+      opacity: [0, 1], translateY: [40, 0], scaleY: [0.4, 1],
+      delay: anime.stagger(55), duration: 600, easing: 'easeOutBack'
+    }, '-=300');
+    tl.add({
+      targets: ['#lU', '#lP'],
+      opacity: [0, 1], translateY: [50, 0], scaleY: [0.3, 1],
+      delay: anime.stagger(45), duration: 650, easing: 'easeOutBack'
+    }, '-=420');
+    tl.add({
+      targets: '#upBadge',
+      opacity: [0, 1], scale: [0, 1], rotate: [-45, 0],
+      duration: 400, easing: 'easeOutBack'
+    }, '-=300');
+    tl.add({ targets: '#logoTagline', opacity: [0, 1], translateY: [6, 0], duration: 400 }, '-=200');
+    tl.add({ targets: '#logoDivider', opacity: [0, 1], scaleX: [0, 1], duration: 500, easing: 'easeInOutSine' }, '-=150');
+    tl.add({ targets: '#ekgWrap', opacity: [0, 1], duration: 200 }, '-=200');
+    tl.add({
+      targets: '#ekgPath',
+      strokeDashoffset: [pathLen, 0], duration: 900, easing: 'easeInOutSine'
+    }, '-=100');
+    tl.add({
       targets: '#ekgDot', opacity: [0, 1, 1, 0],
       keyframes: (() => {
         const pts = [];
@@ -342,160 +716,229 @@ tl.finished.then(() => {
         }
         return pts;
       })(),
-      duration: 1100, easing: 'linear'
-    });
-  }
-  setTimeout(loopEkg, 2500);
+      duration: 900, easing: 'linear'
+    }, '-=900');
+    tl.add({ targets: '#logoStats', opacity: [0, 1], translateY: [4, 0], duration: 400 }, '-=200');
+    tl.add({ targets: '#logoSubtitle', opacity: [0, 1], translateY: [4, 0], duration: 350 }, '-=150');
+    tl.add({
+      targets: '.spark',
+      opacity: [{ value: [0, 0.8], duration: 250 }, { value: 0, duration: 550 }],
+      translateY: () => anime.random(-60, -160) + 'px',
+      translateX: () => anime.random(-50, 50) + 'px',
+      scale: [1, 0.1],
+      delay: anime.stagger(18, { start: 0 }), duration: 800, easing: 'easeOutExpo'
+    }, '-=900');
 
-  // Scan sweep loop
-  function sweepScan() {
-    document.getElementById('scanline').style.top = '-2px';
-    anime({
-      targets: '#scanline', top: ['0vh', '106vh'],
-      duration: 1000, easing: 'linear',
-      complete: () => setTimeout(sweepScan, 7000)
-    });
-  }
-  setTimeout(sweepScan, 6000);
-
-  // Up badge bounce
-  anime({
-    targets: '#upBadge', translateY: [0, -3, 0],
-    duration: 1800, loop: true, easing: 'easeInOutSine'
-  });
-});
-
-// ═══════════════════════════════════════════
-//  AUTH LOGIC
-// ═══════════════════════════════════════════
-
-const btnL = document.getElementById('btnLogin');
-const btnR = document.getElementById('btnRegister');
-const pill = document.getElementById('togglePill');
-const loginForm = document.getElementById('loginForm');
-const regForm = document.getElementById('registerForm');
-let isLogin = true;
-
-function switchTab(toLogin) {
-  isLogin = toLogin;
-  btnL.classList.toggle('active', toLogin);
-  btnR.classList.toggle('active', !toLogin);
-  anime({ targets: pill, translateX: toLogin ? 0 : pill.parentElement.offsetWidth / 2 - 4, duration: 350, easing: 'easeOutExpo' });
-  loginForm.style.display = toLogin ? 'block' : 'none';
-  regForm.style.display = toLogin ? 'none' : 'block';
-  const fields = (toLogin ? loginForm : regForm).querySelectorAll('.form-group, .btn-primary');
-  anime({ targets: fields, translateY: [15, 0], opacity: [0, 1], delay: anime.stagger(60), duration: 400, easing: 'easeOutExpo' });
-}
-btnL.addEventListener('click', () => switchTab(true));
-btnR.addEventListener('click', () => switchTab(false));
-
-// Toast
-function showError(el, msg) {
-  el.textContent = msg;
-  el.classList.add('show');
-  anime({ targets: el, opacity: [0, 1], translateY: [-8, 0], duration: 300, easing: 'easeOutExpo' });
-  setTimeout(() => { el.classList.remove('show'); anime({ targets: el, opacity: 0, duration: 200 }); }, 4000);
-}
-
-function btnTap(btn) {
-  anime({ targets: btn, scale: [1, 0.94, 1], duration: 200, easing: 'easeInOutQuad' });
-}
-
-// LOGIN
-loginForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const btn = document.getElementById('loginBtn');
-  btnTap(btn);
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> Logging in…';
-  try {
-    await account.createEmailPasswordSession(
-      document.getElementById('loginEmail').value.trim(),
-      document.getElementById('loginPass').value
-    );
-    window.location.href = '2_dashboard.html';
-  } catch (err) {
-    showError(document.getElementById('loginError'), err.message || 'Login failed');
-    btn.disabled = false;
-    btn.textContent = 'Login';
-  }
-});
-
-// REGISTER
-regForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const btn = document.getElementById('regBtn');
-  btnTap(btn);
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> Creating account…';
-
-  const name     = document.getElementById('regName').value.trim();
-  const email    = document.getElementById('regEmail').value.trim();
-  const password = document.getElementById('regPass').value;
-  const age      = parseInt(document.getElementById('regAge').value);
-  const height   = parseFloat(document.getElementById('regHeight').value);
-  const weight   = parseFloat(document.getElementById('regWeight').value);
-  const target   = parseFloat(document.getElementById('regTarget').value);
-  const activity = document.getElementById('regActivity').value;
-  const goal     = document.getElementById('regGoal').value;
-
-  if (!activity || !goal) {
-    showError(document.getElementById('regError'), 'Please select activity level and goal');
-    btn.disabled = false;
-    btn.textContent = 'Create Account';
-    return;
-  }
-
-  try {
-    await account.create(ID.unique(), email, password, name);
-    await account.createEmailPasswordSession(email, password);
-    const user = await account.get();
-    const userId = user.$id;
-
-    const maintenance = calcTDEE(weight, height, age, activity);
-    const targets = calcTargets(maintenance, goal);
-    const now = new Date().toISOString();
-
-    await databases.createDocument(DATABASE_ID, COL_USERS_PROFILE, ID.unique(), {
-      user_id: userId, name, age, height_cm: height, weight_kg: weight,
-      target_weight_kg: target, activity_level: activity, goal,
-      maintenance_calories: maintenance,
-      daily_calorie_target: targets.daily_calorie_target,
-      protein_target_g: targets.protein_target_g,
-      carbs_target_g: targets.carbs_target_g,
-      fats_target_g: targets.fats_target_g,
-      cheat_day_threshold: 2000,
-      created_at: now, updated_at: now
-    }, userPermissions(userId));
-
-    // Seed preset foods
-    try {
-      const existing = await databases.listDocuments(DATABASE_ID, COL_FOOD_ITEMS, [
-        Query.equal('user_id', userId), Query.equal('is_preset', true), Query.limit(1)
-      ]);
-      if (existing.total === 0) {
-        for (const f of PRESET_FOODS) {
-          await databases.createDocument(DATABASE_ID, COL_FOOD_ITEMS, ID.unique(), {
-            user_id: userId, ...f, icon_type: 'svg_preset', is_preset: true,
-            fiber_g: 0, sugar_g: 0, sodium_mg: 0, created_at: now
-          }, userPermissions(userId));
-        }
+    // Stat counters
+    tl.add({
+      duration: 1,
+      begin() {
+        countUp(document.getElementById('sv1'), 2140, 1200, 0);
+        countUp(document.getElementById('sv2'), 98, 1000, 0, '%');
+        countUp(document.getElementById('sv3'), 12.4, 1100, 1);
       }
-    } catch (_) { /* presets failed, non-blocking */ }
+    }, '-=500');
 
-    window.location.href = '2_dashboard.html';
-  } catch (err) {
-    showError(document.getElementById('regError'), err.message || 'Registration failed');
-    btn.disabled = false;
-    btn.textContent = 'Create Account';
-  }
-});
+    // Auth form entrance (staggered after logo)
+    tl.add({ targets: '#toggleWrap', opacity: [0, 1], translateY: [10, 0], duration: 400 }, '-=200');
+    tl.add({
+      targets: '#loginForm .form-group, #loginForm .btn-primary',
+      translateY: [15, 0], opacity: [0, 1],
+      delay: anime.stagger(50), duration: 350, easing: 'easeOutExpo'
+    });
 
-// Button hover pulse
-document.querySelectorAll('.btn-primary').forEach(btn => {
-  btn.addEventListener('mouseenter', () => anime({ targets: btn, scale: 1.03, duration: 200, easing: 'easeOutExpo' }));
-  btn.addEventListener('mouseleave', () => anime({ targets: btn, scale: 1, duration: 200, easing: 'easeOutExpo' }));
-});
-</script>
+    // Idle loops after timeline
+    tl.finished.then(() => {
+      // UP glow pulse
+      anime({
+        targets: ['#lU', '#lP'],
+        textShadow: [
+          '0 0 20px rgba(124,92,252,.6), 0 0 50px rgba(124,92,252,.25)',
+          '0 0 40px rgba(124,92,252,.9), 0 0 100px rgba(168,85,247,.45)',
+          '0 0 20px rgba(124,92,252,.6), 0 0 50px rgba(124,92,252,.25)',
+        ],
+        delay: anime.stagger(100), duration: 2000, loop: true, easing: 'easeInOutSine'
+      });
+
+      // Ambient glow breathing
+      anime({
+        targets: '#ambientGlow', opacity: [1, 0.4, 1], scale: [1, 1.05, 1],
+        duration: 3500, loop: true, easing: 'easeInOutSine'
+      });
+
+      // EKG loop
+      function loopEkg() {
+        ekgPath.style.strokeDashoffset = pathLen;
+        anime({
+          targets: '#ekgPath', strokeDashoffset: [pathLen, 0],
+          duration: 1100, easing: 'easeInOutSine',
+          complete: () => setTimeout(loopEkg, 2800)
+        });
+        anime({
+          targets: '#ekgDot', opacity: [0, 1, 1, 0],
+          keyframes: (() => {
+            const pts = [];
+            for (let i = 0; i <= 50; i++) {
+              const pt = ekgPath.getPointAtLength((i / 50) * pathLen);
+              pts.push({ cx: pt.x, cy: pt.y });
+            }
+            return pts;
+          })(),
+          duration: 1100, easing: 'linear'
+        });
+      }
+      setTimeout(loopEkg, 2500);
+
+      // Scan sweep loop
+      function sweepScan() {
+        document.getElementById('scanline').style.top = '-2px';
+        anime({
+          targets: '#scanline', top: ['0vh', '106vh'],
+          duration: 1000, easing: 'linear',
+          complete: () => setTimeout(sweepScan, 7000)
+        });
+      }
+      setTimeout(sweepScan, 6000);
+
+      // Up badge bounce
+      anime({
+        targets: '#upBadge', translateY: [0, -3, 0],
+        duration: 1800, loop: true, easing: 'easeInOutSine'
+      });
+    });
+
+    // ═══════════════════════════════════════════
+    //  AUTH LOGIC
+    // ═══════════════════════════════════════════
+
+    const btnL = document.getElementById('btnLogin');
+    const btnR = document.getElementById('btnRegister');
+    const pill = document.getElementById('togglePill');
+    const loginForm = document.getElementById('loginForm');
+    const regForm = document.getElementById('registerForm');
+    let isLogin = true;
+
+    function switchTab(toLogin) {
+      isLogin = toLogin;
+      btnL.classList.toggle('active', toLogin);
+      btnR.classList.toggle('active', !toLogin);
+      anime({ targets: pill, translateX: toLogin ? 0 : pill.parentElement.offsetWidth / 2 - 4, duration: 350, easing: 'easeOutExpo' });
+      loginForm.style.display = toLogin ? 'block' : 'none';
+      regForm.style.display = toLogin ? 'none' : 'block';
+      const fields = (toLogin ? loginForm : regForm).querySelectorAll('.form-group, .btn-primary');
+      anime({ targets: fields, translateY: [15, 0], opacity: [0, 1], delay: anime.stagger(60), duration: 400, easing: 'easeOutExpo' });
+    }
+    btnL.addEventListener('click', () => switchTab(true));
+    btnR.addEventListener('click', () => switchTab(false));
+
+    // Toast
+    function showError(el, msg) {
+      el.textContent = msg;
+      el.classList.add('show');
+      anime({ targets: el, opacity: [0, 1], translateY: [-8, 0], duration: 300, easing: 'easeOutExpo' });
+      setTimeout(() => { el.classList.remove('show'); anime({ targets: el, opacity: 0, duration: 200 }); }, 4000);
+    }
+
+    function btnTap(btn) {
+      anime({ targets: btn, scale: [1, 0.94, 1], duration: 200, easing: 'easeInOutQuad' });
+    }
+
+    // LOGIN
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('loginBtn');
+      btnTap(btn);
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Logging in…';
+      try {
+        await account.createEmailPasswordSession(
+          document.getElementById('loginEmail').value.trim(),
+          document.getElementById('loginPass').value
+        );
+        window.location.href = '2_dashboard.html';
+      } catch (err) {
+        showError(document.getElementById('loginError'), err.message || 'Login failed');
+        btn.disabled = false;
+        btn.textContent = 'Login';
+      }
+    });
+
+    // REGISTER
+    regForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('regBtn');
+      btnTap(btn);
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Creating account…';
+
+      const name = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const password = document.getElementById('regPass').value;
+      const age = parseInt(document.getElementById('regAge').value);
+      const height = parseFloat(document.getElementById('regHeight').value);
+      const weight = parseFloat(document.getElementById('regWeight').value);
+      const target = parseFloat(document.getElementById('regTarget').value);
+      const activity = document.getElementById('regActivity').value;
+      const goal = document.getElementById('regGoal').value;
+
+      if (!activity || !goal) {
+        showError(document.getElementById('regError'), 'Please select activity level and goal');
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
+        return;
+      }
+
+      try {
+        await account.create(ID.unique(), email, password, name);
+        await account.createEmailPasswordSession(email, password);
+        const user = await account.get();
+        const userId = user.$id;
+
+        const maintenance = calcTDEE(weight, height, age, activity);
+        const targets = calcTargets(maintenance, goal);
+        const now = new Date().toISOString();
+
+        await databases.createDocument(DATABASE_ID, COL_USERS_PROFILE, ID.unique(), {
+          user_id: userId, name, age, height_cm: height, weight_kg: weight,
+          target_weight_kg: target, activity_level: activity, goal,
+          maintenance_calories: maintenance,
+          daily_calorie_target: targets.daily_calorie_target,
+          protein_target_g: targets.protein_target_g,
+          carbs_target_g: targets.carbs_target_g,
+          fats_target_g: targets.fats_target_g,
+          cheat_day_threshold: 2000,
+          created_at: now, updated_at: now
+        }, userPermissions(userId));
+
+        // Seed preset foods
+        try {
+          const existing = await databases.listDocuments(DATABASE_ID, COL_FOOD_ITEMS, [
+            Query.equal('user_id', userId), Query.equal('is_preset', true), Query.limit(1)
+          ]);
+          if (existing.total === 0) {
+            for (const f of PRESET_FOODS) {
+              await databases.createDocument(DATABASE_ID, COL_FOOD_ITEMS, ID.unique(), {
+                user_id: userId, ...f, icon_type: 'svg_preset', is_preset: true,
+                fiber_g: 0, sugar_g: 0, sodium_mg: 0, created_at: now
+              }, userPermissions(userId));
+            }
+          }
+        } catch (_) { /* presets failed, non-blocking */ }
+
+        window.location.href = '2_dashboard.html';
+      } catch (err) {
+        showError(document.getElementById('regError'), err.message || 'Registration failed');
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
+      }
+    });
+
+    // Button hover pulse
+    document.querySelectorAll('.btn-primary').forEach(btn => {
+      btn.addEventListener('mouseenter', () => anime({ targets: btn, scale: 1.03, duration: 200, easing: 'easeOutExpo' }));
+      btn.addEventListener('mouseleave', () => anime({ targets: btn, scale: 1, duration: 200, easing: 'easeOutExpo' }));
+    });
+  </script>
 </body>
+
 </html>

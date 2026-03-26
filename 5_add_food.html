@@ -9,6 +9,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 <style>
 :root{--bg:#0a0a0f;--surface:#12121a;--elevated:#1a1a26;--border:rgba(255,255,255,0.05);--accent:#7c5cfc;--green:#22d3a0;--amber:#f59e0b;--red:#f43f5e;--purple:#a855f7;--text:#f0f0ff;--muted:#6b6b8a}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -58,6 +60,17 @@ h1,h2,h3{font-family:'Space Grotesk',sans-serif}
 .nav-tab.active{color:var(--accent)}
 .nav-underline{position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);width:20px;height:3px;background:var(--accent);border-radius:2px;display:none}
 .nav-tab.active .nav-underline{display:block}
+/* Crop Modal */
+.crop-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:500;display:none;flex-direction:column;align-items:center;justify-content:center}
+.crop-overlay.show{display:flex}
+.crop-container{width:90vw;max-width:400px;max-height:60vh;overflow:hidden;border-radius:12px;background:var(--elevated)}
+.crop-container img{display:block;max-width:100%}
+.crop-actions{display:flex;gap:12px;margin-top:18px}
+.crop-actions button{padding:12px 28px;border-radius:14px;font-size:.95rem;font-weight:700;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all .2s}
+.crop-apply{background:var(--accent);color:#fff}
+.crop-apply:hover{filter:brightness(1.15)}
+.crop-cancel{background:var(--elevated);color:var(--muted);border:1px solid var(--border)}
+.crop-cancel:hover{border-color:var(--accent);color:var(--text)}
 /* Responsive */
 @media(min-width:768px){.page{max-width:600px;padding:24px}.bottom-nav{max-width:600px}}
 @media(min-width:1200px){.page{max-width:700px;padding:32px}.bottom-nav{max-width:700px}}
@@ -80,6 +93,15 @@ h1,h2,h3{font-family:'Space Grotesk',sans-serif}
   <input type="file" id="photoInput" accept="image/jpeg,image/png,image/webp" style="display:none">
   <div class="emoji-input-wrap" id="emojiWrap">
     <input type="text" class="emoji-input" id="emojiInput" placeholder="Paste an emoji…" maxlength="4">
+  </div>
+
+  <!-- Crop Modal -->
+  <div class="crop-overlay" id="cropOverlay">
+    <div class="crop-container"><img id="cropImage" src="" alt="Crop"></div>
+    <div class="crop-actions">
+      <button class="crop-cancel" id="cropCancel">Cancel</button>
+      <button class="crop-apply" id="cropApply">Apply</button>
+    </div>
   </div>
 
   <form id="foodForm">
@@ -194,15 +216,49 @@ function updatePreview() {
 }
 updatePreview();
 
-// Photo
+// Photo crop flow
+let cropperInstance = null;
+const cropOverlay = document.getElementById('cropOverlay');
+const cropImage = document.getElementById('cropImage');
+
 document.getElementById('photoBtnTrigger').addEventListener('click', () => document.getElementById('photoInput').click());
 document.getElementById('photoInput').addEventListener('change', (e) => {
-  if (e.target.files[0]) {
-    photoFile = e.target.files[0];
-    selectedIconType = 'photo';
-    document.querySelectorAll('.icon-option').forEach(o => o.classList.remove('active'));
-    updatePreview();
-  }
+  if (!e.target.files[0]) return;
+  const file = e.target.files[0];
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    cropImage.src = ev.target.result;
+    cropOverlay.classList.add('show');
+    if (cropperInstance) cropperInstance.destroy();
+    cropperInstance = new Cropper(cropImage, {
+      aspectRatio: 1,
+      viewMode: 1,
+      dragMode: 'move',
+      autoCropArea: 0.85,
+      background: false,
+      responsive: true,
+      modal: true,
+    });
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+});
+
+document.getElementById('cropCancel').addEventListener('click', () => {
+  cropOverlay.classList.remove('show');
+  if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
+});
+
+document.getElementById('cropApply').addEventListener('click', async () => {
+  if (!cropperInstance) return;
+  const canvas = cropperInstance.getCroppedCanvas({ width: 256, height: 256 });
+  const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.85));
+  photoFile = new File([blob], 'food_photo.jpg', { type: 'image/jpeg' });
+  selectedIconType = 'photo';
+  document.querySelectorAll('.icon-option').forEach(o => o.classList.remove('active'));
+  updatePreview();
+  cropOverlay.classList.remove('show');
+  if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
 });
 
 // Emoji

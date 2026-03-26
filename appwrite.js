@@ -145,7 +145,22 @@ export function cacheClear() {
   } catch (_) {}
 }
 
-// ── Date Helpers ─────────────────────────────────────────────
+// ── Avatar URL Helper ────────────────────────────────────────
+// Handles both legacy full URLs and new file-ID-only values
+export function getAvatarUrl(avatarField) {
+  if (!avatarField) return null;
+  // If it already looks like a full URL, extract the file ID and rebuild
+  if (avatarField.startsWith('http')) {
+    const match = avatarField.match(/\/files\/([^/]+)\/view/);
+    if (match) {
+      return `${ENDPOINT}/storage/buckets/${BUCKET_FOOD_PHOTOS}/files/${match[1]}/view?project=${PROJECT_ID}`;
+    }
+    return avatarField;
+  }
+  // Bare file ID
+  return `${ENDPOINT}/storage/buckets/${BUCKET_FOOD_PHOTOS}/files/${avatarField}/view?project=${PROJECT_ID}`;
+}
+
 export function todayStr() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;

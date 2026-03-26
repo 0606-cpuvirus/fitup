@@ -9,6 +9,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 <style>
 :root{--bg:#0a0a0f;--surface:#12121a;--elevated:#1a1a26;--border:rgba(255,255,255,0.05);--accent:#7c5cfc;--green:#22d3a0;--amber:#f59e0b;--red:#f43f5e;--purple:#a855f7;--text:#f0f0ff;--muted:#6b6b8a}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -74,6 +76,17 @@ h1,h2,h3{font-family:'Space Grotesk',sans-serif}
 .nav-tab.active{color:var(--accent)}
 .nav-underline{position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);width:20px;height:3px;background:var(--accent);border-radius:2px;display:none}
 .nav-tab.active .nav-underline{display:block}
+/* Crop Modal */
+.crop-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:500;display:none;flex-direction:column;align-items:center;justify-content:center}
+.crop-overlay.show{display:flex}
+.crop-container{width:90vw;max-width:400px;max-height:60vh;overflow:hidden;border-radius:12px;background:var(--elevated)}
+.crop-container img{display:block;max-width:100%}
+.crop-actions{display:flex;gap:12px;margin-top:18px}
+.crop-actions button{padding:12px 28px;border-radius:14px;font-size:.95rem;font-weight:700;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all .2s}
+.crop-apply{background:var(--accent);color:#fff}
+.crop-apply:hover{filter:brightness(1.15)}
+.crop-cancel{background:var(--elevated);color:var(--muted);border:1px solid var(--border)}
+.crop-cancel:hover{border-color:var(--accent);color:var(--text)}
 /* Responsive */
 @media(min-width:768px){.page{max-width:600px;padding:24px}.bottom-nav{max-width:600px}}
 @media(min-width:1200px){.page{max-width:700px;padding:32px}.bottom-nav{max-width:700px}}
@@ -89,6 +102,15 @@ h1,h2,h3{font-family:'Space Grotesk',sans-serif}
       <input type="file" id="avatarInput" accept="image/jpeg,image/png,image/webp" style="display:none">
       <div class="profile-name" id="profileName"></div>
       <div class="profile-email" id="profileEmail"></div>
+    </div>
+
+    <!-- Crop Modal -->
+    <div class="crop-overlay" id="cropOverlay">
+      <div class="crop-container"><img id="cropImage" src="" alt="Crop"></div>
+      <div class="crop-actions">
+        <button class="crop-cancel" id="cropCancel">Cancel</button>
+        <button class="crop-apply" id="cropApply">Apply</button>
+      </div>
     </div>
 
     <div class="card" id="statsCard">
@@ -163,7 +185,7 @@ h1,h2,h3{font-family:'Space Grotesk',sans-serif}
 import { getCurrentUser, account, databases, storage, ID, Query, Permission, Role,
          DATABASE_ID, COL_USERS_PROFILE, COL_WEIGHT_HISTORY, BUCKET_FOOD_PHOTOS,
          ENDPOINT, PROJECT_ID,
-         calcTDEE, calcTargets, cacheSet, cacheClear, userPermissions } from './appwrite.js';
+         calcTDEE, calcTargets, cacheSet, cacheClear, userPermissions, getAvatarUrl } from './appwrite.js';
 
 function showToast(msg, type='success') {
   const t = document.getElementById('toast');
@@ -191,20 +213,70 @@ let profileDocId = null;
 
   // Avatar
   const av = document.getElementById('avatarLg');
-  if (profile.avatar_url) { av.innerHTML = `<img src="${profile.avatar_url}" alt="avatar">`; }
+  const avatarSrc = getAvatarUrl(profile.avatar_url);
+  if (avatarSrc) { av.innerHTML = `<img src="${avatarSrc}" alt="avatar" onerror="this.onerror=null;this.parentElement.textContent='${profile.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}';">`; }
   else { av.textContent = profile.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
   av.addEventListener('click', () => document.getElementById('avatarInput').click());
-  document.getElementById('avatarInput').addEventListener('change', async (e) => {
-    if (!e.target.files[0]) return;
+
+  // Crop state
+  let cropper = null;
+  const cropOverlay = document.getElementById('cropOverlay');
+  const cropImage = document.getElementById('cropImage');
+
+  function openCropper(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      cropImage.src = e.target.result;
+      cropOverlay.classList.add('show');
+      if (cropper) cropper.destroy();
+      cropper = new Cropper(cropImage, {
+        aspectRatio: 1,
+        viewMode: 1,
+        dragMode: 'move',
+        autoCropArea: 0.85,
+        background: false,
+        responsive: true,
+        modal: true,
+      });
+    };
+    reader.readAsDataURL(file);
+  }
+
+  document.getElementById('cropCancel').addEventListener('click', () => {
+    cropOverlay.classList.remove('show');
+    if (cropper) { cropper.destroy(); cropper = null; }
+  });
+
+  document.getElementById('cropApply').addEventListener('click', async () => {
+    if (!cropper) return;
+    const applyBtn = document.getElementById('cropApply');
+    applyBtn.textContent = 'Uploading…';
+    applyBtn.disabled = true;
     try {
-      const file = await storage.createFile(BUCKET_FOOD_PHOTOS, ID.unique(), e.target.files[0], [
+      const canvas = cropper.getCroppedCanvas({ width: 256, height: 256 });
+      const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.85));
+      const croppedFile = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
+      const uploaded = await storage.createFile(BUCKET_FOOD_PHOTOS, ID.unique(), croppedFile, [
         Permission.read(Role.any())
       ]);
-      const url = `${ENDPOINT}/storage/buckets/${BUCKET_FOOD_PHOTOS}/files/${file.$id}/view?project=${PROJECT_ID}`;
-      await databases.updateDocument(DATABASE_ID, COL_USERS_PROFILE, profileDocId, { avatar_url: url, updated_at: new Date().toISOString() });
-      av.innerHTML = `<img src="${url}" alt="avatar" onerror="this.onerror=null;this.parentElement.textContent='👤';">`;
+      const fileId = uploaded.$id;
+      await databases.updateDocument(DATABASE_ID, COL_USERS_PROFILE, profileDocId, { avatar_url: fileId, updated_at: new Date().toISOString() });
+      const newUrl = getAvatarUrl(fileId);
+      av.innerHTML = `<img src="${newUrl}" alt="avatar" onerror="this.onerror=null;this.parentElement.textContent='👤';">`;
+      profile.avatar_url = fileId;
+      cacheSet('fitup_profile', profile);
       showToast('Avatar updated!');
-    } catch (e) { showToast('Upload failed', 'error'); }
+    } catch (err) { showToast('Upload failed', 'error'); }
+    cropOverlay.classList.remove('show');
+    if (cropper) { cropper.destroy(); cropper = null; }
+    applyBtn.textContent = 'Apply';
+    applyBtn.disabled = false;
+  });
+
+  document.getElementById('avatarInput').addEventListener('change', (e) => {
+    if (!e.target.files[0]) return;
+    openCropper(e.target.files[0]);
+    e.target.value = ''; // allow re-selecting same file
   });
 
   document.getElementById('profileName').textContent = profile.name;
