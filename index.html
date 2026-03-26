@@ -515,38 +515,32 @@
       }
     }
 
-    /* ── Footer ── */
+    /* ── Dev Footer ── */
     .dev-footer {
-      position: absolute;
-      bottom: 20px;
-      left: 0;
-      right: 0;
-      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 14px;
       font-size: 0.75rem;
       color: var(--muted);
       font-family: 'Space Mono', monospace;
-      z-index: 10;
       opacity: 0;
-      animation: fadeIn 1s forwards 1.5s;
+      transform: translateY(4px);
     }
-
-    .dev-footer:hover {
-      opacity: 0.9;
-    }
-
     .dev-footer a {
-      color: var(--accent);
-      text-decoration: none;
-      transition: text-shadow 0.3s, color 0.3s;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      transition: color 0.2s, filter 0.2s;
     }
-
     .dev-footer a:hover {
       color: var(--purple);
-      text-shadow: 0 0 8px rgba(168, 85, 247, 0.5);
+      filter: drop-shadow(0 0 6px rgba(168, 85, 247, 0.5));
     }
-
-    @keyframes fadeIn {
-      to { opacity: 0.5; }
+    .dev-footer svg {
+      width: 14px;
+      height: 14px;
     }
   </style>
 </head>
@@ -598,21 +592,16 @@
           <circle class="ekg-dot" id="ekgDot" r="3" cx="0" cy="16" />
         </svg>
       </div>
-      <div class="logo-stats" id="logoStats">
-        <div class="logo-stat">
-          <div class="stat-val c1" id="sv1">0</div>
-          <div class="stat-lbl">kcal / day</div>
-        </div>
-        <div class="logo-stat">
-          <div class="stat-val c2" id="sv2">0%</div>
-          <div class="stat-lbl">goal hit rate</div>
-        </div>
-        <div class="logo-stat">
-          <div class="stat-val c3" id="sv3">0</div>
-          <div class="stat-lbl">kg avg loss</div>
-        </div>
+      <div class="dev-footer" id="devFooter">
+        Developed By Zeeman Khan
+        <a href="https://instagram.com/zeemankhann" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+          </svg>
+        </a>
       </div>
-      <div class="logo-subtitle" id="logoSubtitle">Track · Burn · Rise</div>
     </div>
 
 
@@ -680,10 +669,7 @@
     </form>
   </div>
 
-  <!-- Footer -->
-  <div class="dev-footer">
-    Developed By Zeeman Khan • Instagram: <a href="https://instagram.com/zeemankhann" target="_blank" rel="noopener noreferrer">@zeemankhann</a>
-  </div>
+
 
   <script type="module">
     import {
@@ -773,8 +759,7 @@
       })(),
       duration: 900, easing: 'linear'
     }, '-=900');
-    tl.add({ targets: '#logoStats', opacity: [0, 1], translateY: [4, 0], duration: 400 }, '-=200');
-    tl.add({ targets: '#logoSubtitle', opacity: [0, 1], translateY: [4, 0], duration: 350 }, '-=150');
+    tl.add({ targets: '#devFooter', opacity: [0, 1], translateY: [4, 0], duration: 400 }, '-=200');
     tl.add({
       targets: '.spark',
       opacity: [{ value: [0, 0.8], duration: 250 }, { value: 0, duration: 550 }],
@@ -783,16 +768,6 @@
       scale: [1, 0.1],
       delay: anime.stagger(18, { start: 0 }), duration: 800, easing: 'easeOutExpo'
     }, '-=900');
-
-    // Stat counters
-    tl.add({
-      duration: 1,
-      begin() {
-        countUp(document.getElementById('sv1'), 2140, 1200, 0);
-        countUp(document.getElementById('sv2'), 98, 1000, 0, '%');
-        countUp(document.getElementById('sv3'), 12.4, 1100, 1);
-      }
-    }, '-=500');
 
     // Auth form entrance (staggered after logo)
     tl.add({ targets: '#toggleWrap', opacity: [0, 1], translateY: [10, 0], duration: 400 }, '-=200');
