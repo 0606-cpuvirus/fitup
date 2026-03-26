@@ -114,9 +114,13 @@ export function renderFoodIcon(icon_type, icon_key, size = 40) {
   }
   if (icon_type === 'photo') {
     const img = document.createElement('img');
-    img.src = storage.getFilePreview(BUCKET_FOOD_PHOTOS, icon_key).toString();
-    img.style.cssText = `width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;`;
+    img.src = `${ENDPOINT}/storage/buckets/${BUCKET_FOOD_PHOTOS}/files/${icon_key}/view?project=${PROJECT_ID}`;
+    img.style.cssText = `width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;background:var(--elevated,#1a1a26);`;
     img.alt = 'food';
+    img.onerror = () => {
+      img.style.cssText = `width:${size}px;height:${size}px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--elevated,#1a1a26);`;
+      img.outerHTML = `<div style="width:${size}px;height:${size}px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#1a1a26;color:#6b6b8a;font-size:${size*0.4}px;">📷</div>`;
+    };
     return img;
   }
   // svg_preset

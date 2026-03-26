@@ -67,12 +67,24 @@ h1,h2,h3{font-family:'Space Grotesk',sans-serif}
 .meal-action-btn.del{color:rgba(244,63,94,.7)}
 .meal-action-btn.del:hover{color:var(--red)}
 .meal-item-meta{color:var(--muted);font-size:.8rem}
-.inline-edit-wrap{display:none;background:var(--elevated);padding:10px;border-radius:10px;margin-top:8px}
-.inline-edit-wrap.show{display:flex;align-items:center;gap:8px}
-.inline-edit-wrap input{width:60px;padding:6px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.85rem;text-align:center;outline:none}
-.inline-edit-wrap button{padding:6px 10px;border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;border:none}
+.inline-edit-wrap{display:none;background:var(--elevated);padding:12px;border-radius:12px;margin-top:8px;flex-direction:column;gap:8px}
+.inline-edit-wrap.show{display:flex}
+.edit-fields-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.edit-field{display:flex;flex-direction:column;gap:2px}
+.edit-field label{font-size:.7rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.edit-field input{padding:7px 8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.85rem;text-align:center;outline:none;font-family:'DM Sans',sans-serif;transition:border-color .2s}
+.edit-field input:focus{border-color:var(--accent)}
+.edit-actions{display:flex;gap:6px;justify-content:flex-end;margin-top:4px}
+.edit-actions button{padding:7px 14px;border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all .15s}
 .inline-edit-save{background:var(--accent);color:#fff}
+.inline-edit-save:hover{filter:brightness(1.15)}
 .inline-edit-cancel{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.inline-edit-cancel:hover{border-color:var(--accent);color:var(--text)}
+.del-confirm-chip{display:none;background:rgba(244,63,94,.1);padding:10px 14px;border-radius:10px;align-items:center;gap:8px;margin-top:8px;font-size:.82rem;color:var(--red)}
+.del-confirm-chip.show{display:flex}
+.del-confirm-chip button{padding:5px 14px;border-radius:8px;font-size:.78rem;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;border:none;transition:all .15s}
+.del-confirm-chip .del-yes{background:var(--red);color:#fff}
+.del-confirm-chip .del-no{background:var(--elevated);color:var(--text)}
 .sheet-note{font-style:italic;color:var(--muted);font-size:.85rem;margin-top:8px}
 /* Weight chart */
 .weight-chart-label{color:var(--muted);font-size:.82rem;text-align:center;margin-top:6px}
@@ -90,6 +102,9 @@ h1,h2,h3{font-family:'Space Grotesk',sans-serif}
 .nav-tab.active{color:var(--accent)}
 .nav-underline{position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);width:20px;height:3px;background:var(--accent);border-radius:2px;display:none}
 .nav-tab.active .nav-underline{display:block}
+/* Responsive */
+@media(min-width:768px){.page{max-width:600px;padding:24px}.bottom-nav{max-width:600px}.day-sheet{max-width:600px}}
+@media(min-width:1200px){.page{max-width:700px;padding:32px}.bottom-nav{max-width:700px}.day-sheet{max-width:700px}}
 </style>
 </head>
 <body>
@@ -352,14 +367,26 @@ async function openDayDetail(dateStr, log) {
                   </div>
                 </div>
                 <div class="meal-item-meta">
-                  <span id="qty-text-${e.$id}">${e.quantity}</span>× (${Math.round(e.calories_consumed)} kcal) 
-                  — P:${Math.round(e.protein_consumed_g)}g C:${Math.round(e.carbs_consumed_g)}g F:${Math.round(e.fats_consumed_g)}g
+                  <span>${e.quantity}</span>× — ${Math.round(e.calories_consumed)} kcal
+                  | P:${Math.round(e.protein_consumed_g)}g C:${Math.round(e.carbs_consumed_g)}g F:${Math.round(e.fats_consumed_g)}g
                 </div>
                 <div class="inline-edit-wrap" id="edit-wrap-${e.$id}">
-                  <span style="font-size:.8rem;color:var(--muted)">Qty:</span>
-                  <input type="number" id="edit-qty-${e.$id}" value="${e.quantity}" min="0.1" step="0.1">
-                  <button class="inline-edit-save save-entry" data-id="${e.$id}" data-logid="${log.$id}" data-foodid="${e.food_item_id}">Save</button>
-                  <button class="inline-edit-cancel cancel-entry" data-id="${e.$id}">Cancel</button>
+                  <div class="edit-fields-grid">
+                    <div class="edit-field"><label>Quantity</label><input type="number" id="edit-qty-${e.$id}" value="${e.quantity}" min="0.1" step="0.1"></div>
+                    <div class="edit-field"><label>Calories</label><input type="number" id="edit-cal-${e.$id}" value="${Math.round(e.calories_consumed*10)/10}" min="0" step="0.1"></div>
+                    <div class="edit-field"><label>Protein (g)</label><input type="number" id="edit-pro-${e.$id}" value="${Math.round(e.protein_consumed_g*10)/10}" min="0" step="0.1"></div>
+                    <div class="edit-field"><label>Carbs (g)</label><input type="number" id="edit-carb-${e.$id}" value="${Math.round(e.carbs_consumed_g*10)/10}" min="0" step="0.1"></div>
+                    <div class="edit-field"><label>Fats (g)</label><input type="number" id="edit-fat-${e.$id}" value="${Math.round(e.fats_consumed_g*10)/10}" min="0" step="0.1"></div>
+                  </div>
+                  <div class="edit-actions">
+                    <button class="inline-edit-cancel cancel-entry" data-id="${e.$id}">Cancel</button>
+                    <button class="inline-edit-save save-entry" data-id="${e.$id}" data-logid="${log.$id}" data-foodid="${e.food_item_id}">Save</button>
+                  </div>
+                </div>
+                <div class="del-confirm-chip" id="del-confirm-${e.$id}">
+                  <span>Delete this entry?</span>
+                  <button class="del-yes confirm-del-yes" data-id="${e.$id}" data-logid="${log.$id}">Delete</button>
+                  <button class="del-no confirm-del-no" data-id="${e.$id}">Cancel</button>
                 </div>
               </div>`;
             });
@@ -367,58 +394,86 @@ async function openDayDetail(dateStr, log) {
         });
         mealsDiv.innerHTML = mealsHtml;
 
-        // Wire events
+        // Wire edit button
         mealsDiv.querySelectorAll('.edit-entry').forEach(btn => btn.addEventListener('click', (e) => {
           const id = e.currentTarget.dataset.id;
-          document.getElementById('edit-wrap-' + id).classList.add('show');
+          const foodId = e.currentTarget.dataset.foodid;
+          const wrap = document.getElementById('edit-wrap-' + id);
+          wrap.classList.add('show');
+          anime({ targets: wrap, opacity: [0,1], translateY: [-6,0], duration: 250, easing: 'easeOutExpo' });
+          // Auto-compute macros when quantity changes
+          const qtyInput = document.getElementById('edit-qty-' + id);
+          qtyInput.addEventListener('input', () => {
+            const food = foodMap[foodId];
+            if (!food) return;
+            const q = parseFloat(qtyInput.value) || 0;
+            document.getElementById('edit-cal-' + id).value = Math.round(food.calories * q * 10) / 10;
+            document.getElementById('edit-pro-' + id).value = Math.round(food.protein_g * q * 10) / 10;
+            document.getElementById('edit-carb-' + id).value = Math.round(food.carbs_g * q * 10) / 10;
+            document.getElementById('edit-fat-' + id).value = Math.round(food.fats_g * q * 10) / 10;
+          });
         }));
         mealsDiv.querySelectorAll('.cancel-entry').forEach(btn => btn.addEventListener('click', (e) => {
-          const id = e.currentTarget.dataset.id;
-          document.getElementById('edit-wrap-' + id).classList.remove('show');
+          document.getElementById('edit-wrap-' + e.currentTarget.dataset.id).classList.remove('show');
         }));
         mealsDiv.querySelectorAll('.save-entry').forEach(btn => btn.addEventListener('click', async (e) => {
           const id = e.currentTarget.dataset.id;
           const logId = e.currentTarget.dataset.logid;
-          const foodId = e.currentTarget.dataset.foodid;
           const newQty = parseFloat(document.getElementById('edit-qty-' + id).value);
+          const newCal = parseFloat(document.getElementById('edit-cal-' + id).value);
+          const newPro = parseFloat(document.getElementById('edit-pro-' + id).value);
+          const newCarb = parseFloat(document.getElementById('edit-carb-' + id).value);
+          const newFat = parseFloat(document.getElementById('edit-fat-' + id).value);
           if (!newQty || newQty <= 0) return;
           
           btn.textContent = '...';
           btn.disabled = true;
           try {
-            const food = foodMap[foodId];
-            if (!food) throw new Error('Food data missing');
-            
             await databases.updateDocument(DATABASE_ID, COL_MEAL_ENTRIES, id, {
               quantity: newQty,
-              calories_consumed: Math.round(food.calories * newQty * 10) / 10,
-              protein_consumed_g: Math.round(food.protein_g * newQty * 10) / 10,
-              carbs_consumed_g: Math.round(food.carbs_g * newQty * 10) / 10,
-              fats_consumed_g: Math.round(food.fats_g * newQty * 10) / 10
+              calories_consumed: Math.round(newCal * 10) / 10,
+              protein_consumed_g: Math.round(newPro * 10) / 10,
+              carbs_consumed_g: Math.round(newCarb * 10) / 10,
+              fats_consumed_g: Math.round(newFat * 10) / 10
             });
             await recalculateDailyLog(logId);
             showToast('Entry updated!');
-            openDayDetail(dateStr, log); // reload sheet
-            await loadMonth(); // refresh calendar
+            // Re-fetch the updated log from logsMap and reopen
+            const updatedLog = logsMap[dateStr];
+            openDayDetail(dateStr, updatedLog || log);
+            await loadMonth();
           } catch(err) {
             showToast('Update failed', 'error');
             btn.textContent = 'Save';
             btn.disabled = false;
           }
         }));
-        mealsDiv.querySelectorAll('.del-entry').forEach(btn => btn.addEventListener('click', async (e) => {
-          if (!confirm('Delete this entry?')) return;
+        // Delete: show inline confirmation
+        mealsDiv.querySelectorAll('.del-entry').forEach(btn => btn.addEventListener('click', (e) => {
           const id = e.currentTarget.dataset.id;
+          const chip = document.getElementById('del-confirm-' + id);
+          chip.classList.add('show');
+          anime({ targets: chip, opacity: [0,1], translateY: [-4,0], duration: 200, easing: 'easeOutExpo' });
+        }));
+        mealsDiv.querySelectorAll('.confirm-del-no').forEach(btn => btn.addEventListener('click', (e) => {
+          document.getElementById('del-confirm-' + e.currentTarget.dataset.id).classList.remove('show');
+        }));
+        mealsDiv.querySelectorAll('.confirm-del-yes').forEach(btn => btn.addEventListener('click', async (e) => {
+          const id = e.currentTarget.dataset.id;
+          const logId = e.currentTarget.dataset.logid;
           btn.disabled = true;
+          btn.textContent = '...';
           try {
             await databases.deleteDocument(DATABASE_ID, COL_MEAL_ENTRIES, id);
-            await recalculateDailyLog(log.$id);
+            await recalculateDailyLog(logId);
             showToast('Entry deleted');
-            openDayDetail(dateStr, log); // reload sheet
-            await loadMonth(); // refresh calendar
+            const updatedLog = logsMap[dateStr];
+            openDayDetail(dateStr, updatedLog || log);
+            await loadMonth();
           } catch(err) {
             showToast('Delete failed', 'error');
             btn.disabled = false;
+            btn.textContent = 'Delete';
           }
         }));
       }

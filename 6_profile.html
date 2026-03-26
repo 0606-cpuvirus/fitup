@@ -74,6 +74,9 @@ h1,h2,h3{font-family:'Space Grotesk',sans-serif}
 .nav-tab.active{color:var(--accent)}
 .nav-underline{position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);width:20px;height:3px;background:var(--accent);border-radius:2px;display:none}
 .nav-tab.active .nav-underline{display:block}
+/* Responsive */
+@media(min-width:768px){.page{max-width:600px;padding:24px}.bottom-nav{max-width:600px}}
+@media(min-width:1200px){.page{max-width:700px;padding:32px}.bottom-nav{max-width:700px}}
 </style>
 </head>
 <body>
@@ -159,6 +162,7 @@ h1,h2,h3{font-family:'Space Grotesk',sans-serif}
 <script type="module">
 import { getCurrentUser, account, databases, storage, ID, Query, Permission, Role,
          DATABASE_ID, COL_USERS_PROFILE, COL_WEIGHT_HISTORY, BUCKET_FOOD_PHOTOS,
+         ENDPOINT, PROJECT_ID,
          calcTDEE, calcTargets, cacheSet, cacheClear, userPermissions } from './appwrite.js';
 
 function showToast(msg, type='success') {
@@ -196,9 +200,9 @@ let profileDocId = null;
       const file = await storage.createFile(BUCKET_FOOD_PHOTOS, ID.unique(), e.target.files[0], [
         Permission.read(Role.any())
       ]);
-      const url = storage.getFilePreview(BUCKET_FOOD_PHOTOS, file.$id).toString();
+      const url = `${ENDPOINT}/storage/buckets/${BUCKET_FOOD_PHOTOS}/files/${file.$id}/view?project=${PROJECT_ID}`;
       await databases.updateDocument(DATABASE_ID, COL_USERS_PROFILE, profileDocId, { avatar_url: url, updated_at: new Date().toISOString() });
-      av.innerHTML = `<img src="${url}" alt="avatar">`;
+      av.innerHTML = `<img src="${url}" alt="avatar" onerror="this.onerror=null;this.parentElement.textContent='👤';">`;
       showToast('Avatar updated!');
     } catch (e) { showToast('Upload failed', 'error'); }
   });
@@ -224,6 +228,9 @@ let profileDocId = null;
   renderStats();
 
   // Inline edit wiring
+  const targetFields = ['daily_calorie_target','protein_target_g','carbs_target_g','fats_target_g','cheat_day_threshold'];
+  const bodyFields = ['age','height_cm','weight_kg','target_weight_kg','activity_level','goal'];
+
   document.querySelectorAll('.stat-row').forEach(row => {
     const field = row.dataset.field;
     if (!field) return;
@@ -244,32 +251,35 @@ let profileDocId = null;
       const val = inputEl.tagName === 'SELECT' ? inputEl.value : (inputEl.type === 'number' ? parseFloat(inputEl.value) : inputEl.value);
       profile[field] = val;
 
-      // Recalculate if body stat changed
-      const bodyFields = ['age','height_cm','weight_kg','target_weight_kg','activity_level','goal'];
-      if (bodyFields.includes(field)) {
-        const maint = calcTDEE(profile.weight_kg, profile.height_cm, profile.age, profile.activity_level);
-        const targets = calcTargets(maint, profile.goal);
-        profile.maintenance_calories = maint;
-        profile.daily_calorie_target = targets.daily_calorie_target;
-        profile.protein_target_g = targets.protein_target_g;
-        profile.carbs_target_g = targets.carbs_target_g;
-        profile.fats_target_g = targets.fats_target_g;
-      }
-
       try {
         const updateData = { [field]: val, updated_at: new Date().toISOString() };
-        if (['age','height_cm','weight_kg','target_weight_kg','activity_level','goal'].includes(field)) {
-          updateData.maintenance_calories = profile.maintenance_calories;
-          updateData.daily_calorie_target = profile.daily_calorie_target;
-          updateData.protein_target_g = profile.protein_target_g;
-          updateData.carbs_target_g = profile.carbs_target_g;
-          updateData.fats_target_g = profile.fats_target_g;
+
+        // Recalculate if body stat changed
+        if (bodyFields.includes(field)) {
+          const maint = calcTDEE(profile.weight_kg, profile.height_cm, profile.age, profile.activity_level);
+          const targets = calcTargets(maint, profile.goal);
+          profile.maintenance_calories = maint;
+          profile.daily_calorie_target = targets.daily_calorie_target;
+          profile.protein_target_g = targets.protein_target_g;
+          profile.carbs_target_g = targets.carbs_target_g;
+          profile.fats_target_g = targets.fats_target_g;
+          updateData.maintenance_calories = maint;
+          updateData.daily_calorie_target = targets.daily_calorie_target;
+          updateData.protein_target_g = targets.protein_target_g;
+          updateData.carbs_target_g = targets.carbs_target_g;
+          updateData.fats_target_g = targets.fats_target_g;
         }
+        // Target fields: save only the specific field (no recalculation)
+
         await databases.updateDocument(DATABASE_ID, COL_USERS_PROFILE, profileDocId, updateData);
         cacheSet('fitup_profile', profile);
         renderStats();
         editInline.classList.remove('show');
-        showToast('Updated!');
+        if (bodyFields.includes(field)) {
+          showToast('Updated! Targets recalculated.');
+        } else {
+          showToast('Updated!');
+        }
       } catch (e) { showToast('Update failed', 'error'); }
     });
   });
