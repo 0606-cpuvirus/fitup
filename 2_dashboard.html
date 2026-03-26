@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>FitUp — Dashboard</title>
+<meta name="description" content="FitUp Dashboard — Track your daily calories, macros, meals and water intake.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+<style>
+:root{--bg:#0a0a0f;--surface:#12121a;--elevated:#1a1a26;--border:rgba(255,255,255,0.05);--accent:#7c5cfc;--green:#22d3a0;--amber:#f59e0b;--red:#f43f5e;--purple:#a855f7;--text:#f0f0ff;--muted:#6b6b8a}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;padding-bottom:80px;min-height:100vh}
+h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif}
+.page{max-width:430px;margin:0 auto;padding:16px}
+.card{background:linear-gradient(var(--surface),var(--surface)) padding-box,linear-gradient(135deg,rgba(124,92,252,.3),transparent) border-box;border:1px solid transparent;border-radius:16px;padding:20px;margin-bottom:14px;box-shadow:0 4px 24px rgba(124,92,252,.07)}
+.card-simple{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:14px}
+.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.greeting{font-family:'Space Grotesk',sans-serif;font-size:1.25rem;font-weight:700}
+.top-right{display:flex;align-items:center;gap:10px}
+.avatar-circle{width:38px;height:38px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;overflow:hidden;cursor:pointer}
+.avatar-circle img{width:100%;height:100%;object-fit:cover}
+.logout-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.2rem;padding:4px}
+.date-sub{color:var(--muted);font-size:.85rem;margin-bottom:18px}
+.ring-card{text-align:center;padding:24px 20px}
+.ring-label{font-size:2rem;font-weight:800;font-family:'Space Grotesk',sans-serif}
+.ring-sub{color:var(--muted);font-size:.85rem;margin-top:2px}
+.remaining{font-size:.92rem;margin-top:10px;font-weight:600}
+.remaining.positive{color:var(--green)}
+.remaining.negative{color:var(--red)}
+.deficit{color:var(--muted);font-size:.82rem;margin-top:2px}
+#cheatBanner{display:none;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:14px;padding:14px 18px;text-align:center;font-weight:600;font-size:.92rem;margin-bottom:14px}
+.macro-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.macro-row:last-child{margin-bottom:0}
+.macro-label{font-size:.85rem;font-weight:600;min-width:64px}
+.macro-values{font-size:.78rem;color:var(--muted);min-width:90px;text-align:right}
+.macro-bar-bg{flex:1;height:8px;background:var(--elevated);border-radius:6px;margin:0 10px;overflow:hidden}
+.macro-bar-fill{height:100%;border-radius:6px;width:0}
+.meal-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
+.meal-row:last-child{border-bottom:none}
+.meal-left{display:flex;align-items:center;gap:10px}
+.meal-icon{font-size:1.3rem}
+.meal-name{font-weight:600;font-size:.9rem}
+.meal-kcal{color:var(--muted);font-size:.82rem}
+.add-btn{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:6px 14px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
+.water-card{text-align:center}
+.water-val{font-size:1.6rem;font-weight:800;font-family:'Space Grotesk',sans-serif;margin:8px 0}
+.water-btns{display:flex;justify-content:center;gap:12px}
+.ghost-btn{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:12px;padding:8px 18px;font-size:.85rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:border-color .2s}
+.ghost-btn:hover{border-color:var(--accent);color:var(--text)}
+.stats-row{display:flex;gap:8px}
+.stat-chip{flex:1;text-align:center;padding:12px 6px;background:var(--elevated);border-radius:12px;font-size:.82rem;font-weight:600}
+.stat-chip span{display:block;color:var(--muted);font-size:.72rem;margin-top:2px;font-weight:400}
+/* Bottom Nav */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:var(--surface);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:8px 0 12px;z-index:100}
+.nav-tab{display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;color:var(--muted);font-size:.68rem;cursor:pointer;padding:4px 8px;position:relative;font-family:'DM Sans',sans-serif}
+.nav-tab .icon{font-size:1.3rem;transition:transform .2s}
+.nav-tab.active .icon{transform:scale(1.2)}
+.nav-tab.active{color:var(--accent)}
+.nav-underline{position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);width:20px;height:3px;background:var(--accent);border-radius:2px;display:none}
+.nav-tab.active .nav-underline{display:block}
+/* Shimmer */
+.shimmer{border-radius:10px;background:linear-gradient(90deg,var(--elevated) 25%,var(--surface) 50%,var(--elevated) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;min-height:20px;margin-bottom:8px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+/* Toast */
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-60px);padding:10px 24px;border-radius:30px;font-size:.88rem;font-weight:600;z-index:999;opacity:0;pointer-events:none;font-family:'DM Sans',sans-serif}
+.toast.success{background:var(--accent);color:#fff}
+.toast.error{background:var(--red);color:#fff}
+.toast.info{background:var(--muted);color:#fff}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<div class="page" id="mainContent">
+  <!-- Top Bar -->
+  <div class="top-bar card" style="background:transparent;border:none;box-shadow:none;padding:0;margin-bottom:0">
+    <div class="greeting" id="greeting">Hey 👋</div>
+    <div class="top-right">
+      <div class="avatar-circle" id="avatarCircle"></div>
+      <button class="logout-btn" id="logoutBtn" title="Logout">⏻</button>
+    </div>
+  </div>
+  <div class="date-sub" id="dateSub"></div>
+
+  <!-- Shimmer placeholders -->
+  <div id="shimmerWrap">
+    <div class="shimmer" style="height:220px"></div>
+    <div class="shimmer" style="height:120px"></div>
+    <div class="shimmer" style="height:180px"></div>
+  </div>
+
+  <div id="dashContent" style="display:none">
+    <!-- Calorie Ring -->
+    <div class="card ring-card" id="ringCard">
+      <svg width="180" height="180" viewBox="0 0 180 180" id="ringSvg">
+        <circle cx="90" cy="90" r="70" fill="none" stroke="var(--elevated)" stroke-width="14"/>
+        <circle cx="90" cy="90" r="70" fill="none" stroke="var(--accent)" stroke-width="14"
+                stroke-linecap="round" id="ringProgress"
+                transform="rotate(-90 90 90)"/>
+      </svg>
+      <div style="margin-top:-110px;margin-bottom:60px;position:relative">
+        <div class="ring-label" id="totalCal">0</div>
+        <div class="ring-sub" id="targetLabel">/ 0 kcal</div>
+      </div>
+      <div class="remaining" id="remainLabel">Remaining: 0 kcal</div>
+      <div class="deficit" id="deficitLabel">Deficit: 0 kcal</div>
+    </div>
+
+    <!-- Cheat Day Banner -->
+    <div id="cheatBanner">🍕 Cheat Day! You've hit <span id="cheatCal">0</span> kcal — reset tomorrow.</div>
+
+    <!-- Macro Bars -->
+    <div class="card" id="macroCard">
+      <div class="macro-row"><span class="macro-label" style="color:var(--accent)">Protein</span><div class="macro-bar-bg"><div class="macro-bar-fill" id="proteinBar" style="background:var(--accent)"></div></div><span class="macro-values" id="proteinVal">0g / 0g</span></div>
+      <div class="macro-row"><span class="macro-label" style="color:var(--green)">Carbs</span><div class="macro-bar-bg"><div class="macro-bar-fill" id="carbsBar" style="background:var(--green)"></div></div><span class="macro-values" id="carbsVal">0g / 0g</span></div>
+      <div class="macro-row"><span class="macro-label" style="color:var(--amber)">Fats</span><div class="macro-bar-bg"><div class="macro-bar-fill" id="fatsBar" style="background:var(--amber)"></div></div><span class="macro-values" id="fatsVal">0g / 0g</span></div>
+    </div>
+
+    <!-- Meal Slots -->
+    <div class="card-simple" id="mealCard">
+      <div class="meal-row"><div class="meal-left"><span class="meal-icon">🌅</span><span class="meal-name">Breakfast</span></div><span class="meal-kcal" id="bfCal">0 kcal</span><button class="add-btn" onclick="goLog('breakfast')">+ Add</button></div>
+      <div class="meal-row"><div class="meal-left"><span class="meal-icon">☀️</span><span class="meal-name">Lunch</span></div><span class="meal-kcal" id="luCal">0 kcal</span><button class="add-btn" onclick="goLog('lunch')">+ Add</button></div>
+      <div class="meal-row"><div class="meal-left"><span class="meal-icon">🌙</span><span class="meal-name">Dinner</span></div><span class="meal-kcal" id="diCal">0 kcal</span><button class="add-btn" onclick="goLog('dinner')">+ Add</button></div>
+      <div class="meal-row"><div class="meal-left"><span class="meal-icon">🍪</span><span class="meal-name">Snack</span></div><span class="meal-kcal" id="snCal">0 kcal</span><button class="add-btn" onclick="goLog('snack')">+ Add</button></div>
+    </div>
+
+    <!-- Water Tracker -->
+    <div class="card water-card" id="waterCard">
+      <div style="font-size:.85rem;color:var(--muted)">💧 Water</div>
+      <div class="water-val" id="waterVal">0 ml</div>
+      <div class="water-btns">
+        <button class="ghost-btn" id="waterDec">− 250ml</button>
+        <button class="ghost-btn" id="waterInc">+ 250ml</button>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="stats-row" id="statsRow">
+      <div class="stat-chip" id="statWeight">--<span>Weight</span></div>
+      <div class="stat-chip" id="statTarget">--<span>Target</span></div>
+      <div class="stat-chip" id="statBmi">--<span>BMI</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <button class="nav-tab active" onclick="navTo('2_dashboard.html')"><span class="icon">🏠</span>Home<div class="nav-underline"></div></button>
+  <button class="nav-tab" onclick="navTo('3_daily_log.html')"><span class="icon">📋</span>Log<div class="nav-underline"></div></button>
+  <button class="nav-tab" onclick="navTo('4_food_library.html')"><span class="icon">🥗</span>Library<div class="nav-underline"></div></button>
+  <button class="nav-tab" onclick="navTo('7_history.html')"><span class="icon">📈</span>History<div class="nav-underline"></div></button>
+  <button class="nav-tab" onclick="navTo('6_profile.html')"><span class="icon">👤</span>Profile<div class="nav-underline"></div></button>
+</nav>
+
+<script type="module">
+import { getCurrentUser, account, databases, ID, Query,
+         DATABASE_ID, COL_USERS_PROFILE, COL_DAILY_LOGS, COL_MEAL_ENTRIES,
+         calcBMI, cacheGet, cacheSet, cacheClear, todayStr, formatDateHuman,
+         userPermissions } from './appwrite.js';
+
+// ── Toast ──
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast ' + type;
+  anime({ targets: t, translateY: [-60, 0], opacity: [0,1], duration: 400, easing:'easeOutExpo' });
+  setTimeout(() => anime({ targets: t, opacity: 0, translateY: -30, duration: 300, easing:'easeInExpo' }), 3000);
+}
+window.showToast = showToast;
+
+// ── Nav ──
+window.navTo = (url) => { window.location.href = url; };
+window.goLog = (slot) => { window.location.href = '3_daily_log.html?slot=' + slot; };
+
+// ── Date ──
+const today = todayStr();
+document.getElementById('dateSub').textContent = formatDateHuman(today);
+
+// ── Logout ──
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  try { await account.deleteSession('current'); cacheClear(); } catch(_){}
+  window.location.href = 'index.html';
+});
+
+// ── Number count-up helper ──
+function countUp(el, target, suffix='') {
+  const obj = { val: 0 };
+  anime({ targets: obj, val: target, round: 1, duration: 800, easing: 'easeOutExpo',
+    update: () => { el.textContent = obj.val + suffix; }
+  });
+}
+
+// ── Main init ──
+(async () => {
+  const user = await getCurrentUser();
+  if (!user) return;
+  const userId = user.$id;
+
+  // Greeting
+  let profile = cacheGet('fitup_profile');
+  try {
+    const res = await databases.listDocuments(DATABASE_ID, COL_USERS_PROFILE, [Query.equal('user_id', userId), Query.limit(1)]);
+    if (res.documents.length) { profile = res.documents[0]; cacheSet('fitup_profile', profile); }
+  } catch (e) {
+    if (!profile) { showToast('Failed to load profile', 'error'); return; }
+    showToast('Offline — showing cached data', 'info');
+  }
+  if (!profile) { showToast('Profile not found', 'error'); return; }
+
+  document.getElementById('greeting').textContent = `Hey, ${profile.name} 👋`;
+  const ac = document.getElementById('avatarCircle');
+  if (profile.avatar_url) { ac.innerHTML = `<img src="${profile.avatar_url}" alt="avatar">`; }
+  else { ac.textContent = profile.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
+
+  // Daily log
+  let log;
+  try {
+    const logRes = await databases.listDocuments(DATABASE_ID, COL_DAILY_LOGS, [
+      Query.equal('user_id', userId), Query.equal('log_date', today), Query.limit(1)
+    ]);
+    if (logRes.documents.length) { log = logRes.documents[0]; }
+    else {
+      const now = new Date().toISOString();
+      log = await databases.createDocument(DATABASE_ID, COL_DAILY_LOGS, ID.unique(), {
+        user_id: userId, log_date: today, total_calories: 0, total_protein_g: 0,
+        total_carbs_g: 0, total_fats_g: 0, total_fiber_g: 0, water_ml: 0,
+        is_cheat_day: false, calories_remaining: profile.daily_calorie_target,
+        calorie_deficit: profile.maintenance_calories, mood: 'okay', note: '',
+        created_at: now, updated_at: now
+      }, userPermissions(userId));
+    }
+  } catch (e) {
+    log = cacheGet('fitup_log_' + today);
+    if (!log) { showToast('Failed to load today\'s log', 'error'); return; }
+    showToast('Offline — showing cached data', 'info');
+  }
+
+  // Fetch entries & recalculate
+  let entries = [];
+  try {
+    const eRes = await databases.listDocuments(DATABASE_ID, COL_MEAL_ENTRIES, [
+      Query.equal('daily_log_id', log.$id), Query.limit(100)
+    ]);
+    entries = eRes.documents;
+  } catch (_) {}
+
+  let totals = { cal: 0, p: 0, c: 0, f: 0, fiber: 0 };
+  let mealCals = { breakfast: 0, lunch: 0, dinner: 0, snack: 0 };
+  entries.forEach(e => {
+    totals.cal += e.calories_consumed || 0;
+    totals.p += e.protein_consumed_g || 0;
+    totals.c += e.carbs_consumed_g || 0;
+    totals.f += e.fats_consumed_g || 0;
+    mealCals[e.meal_slot] = (mealCals[e.meal_slot] || 0) + (e.calories_consumed || 0);
+  });
+
+  const calRemain = profile.daily_calorie_target - totals.cal;
+  const calDeficit = profile.maintenance_calories - totals.cal;
+  const isCheat = totals.cal > (profile.cheat_day_threshold || 2000);
+
+  try {
+    await databases.updateDocument(DATABASE_ID, COL_DAILY_LOGS, log.$id, {
+      total_calories: Math.round(totals.cal), total_protein_g: Math.round(totals.p * 10) / 10,
+      total_carbs_g: Math.round(totals.c * 10) / 10, total_fats_g: Math.round(totals.f * 10) / 10,
+      calories_remaining: Math.round(calRemain), calorie_deficit: Math.round(calDeficit),
+      is_cheat_day: isCheat, updated_at: new Date().toISOString()
+    });
+  } catch (_) {}
+
+  log.total_calories = totals.cal;
+  log.total_protein_g = totals.p;
+  log.total_carbs_g = totals.c;
+  log.total_fats_g = totals.f;
+  log.calories_remaining = calRemain;
+  log.calorie_deficit = calDeficit;
+  log.is_cheat_day = isCheat;
+  log.water_ml = log.water_ml || 0;
+  cacheSet('fitup_log_' + today, log);
+
+  // Hide shimmer, show content
+  document.getElementById('shimmerWrap').style.display = 'none';
+  document.getElementById('dashContent').style.display = 'block';
+
+  // ── Render ──
+  const target = profile.daily_calorie_target;
+  const circumference = 2 * Math.PI * 70;
+  const ratio = Math.min(totals.cal / target, 1);
+  const ringEl = document.getElementById('ringProgress');
+  ringEl.setAttribute('stroke-dasharray', circumference);
+  ringEl.setAttribute('stroke-dashoffset', circumference);
+
+  document.getElementById('targetLabel').textContent = `/ ${target} kcal`;
+  countUp(document.getElementById('totalCal'), Math.round(totals.cal));
+
+  // Ring animation
+  anime({ targets: ringEl, strokeDashoffset: [circumference, circumference * (1 - ratio)], duration: 1200, easing: 'easeInOutQuart' });
+
+  // Remaining
+  const remEl = document.getElementById('remainLabel');
+  remEl.textContent = `Remaining: ${Math.round(calRemain)} kcal`;
+  remEl.classList.add(calRemain >= 0 ? 'positive' : 'negative');
+  document.getElementById('deficitLabel').textContent = `Deficit: ${Math.round(calDeficit)} kcal`;
+
+  // Cheat day
+  if (isCheat) {
+    const banner = document.getElementById('cheatBanner');
+    banner.style.display = 'block';
+    document.getElementById('cheatCal').textContent = Math.round(totals.cal);
+    anime({ targets: banner, translateX: [-6,6,-4,4,-2,2,0], duration: 500 });
+    anime({ targets: banner, boxShadow: ['0 0 0px rgba(124,92,252,0)','0 0 20px rgba(124,92,252,.4)','0 0 0px rgba(124,92,252,0)'], duration: 2000, loop: true, easing: 'easeInOutSine' });
+  }
+
+  // Macros
+  const pPct = profile.protein_target_g > 0 ? Math.min((totals.p / profile.protein_target_g) * 100, 100) : 0;
+  const cPct = profile.carbs_target_g > 0 ? Math.min((totals.c / profile.carbs_target_g) * 100, 100) : 0;
+  const fPct = profile.fats_target_g > 0 ? Math.min((totals.f / profile.fats_target_g) * 100, 100) : 0;
+  document.getElementById('proteinVal').textContent = `${Math.round(totals.p)}g / ${Math.round(profile.protein_target_g)}g`;
+  document.getElementById('carbsVal').textContent = `${Math.round(totals.c)}g / ${Math.round(profile.carbs_target_g)}g`;
+  document.getElementById('fatsVal').textContent = `${Math.round(totals.f)}g / ${Math.round(profile.fats_target_g)}g`;
+  anime({ targets: '#proteinBar', width: pPct + '%', duration: 800, delay: 0, easing: 'easeOutExpo' });
+  anime({ targets: '#carbsBar', width: cPct + '%', duration: 800, delay: 100, easing: 'easeOutExpo' });
+  anime({ targets: '#fatsBar', width: fPct + '%', duration: 800, delay: 200, easing: 'easeOutExpo' });
+
+  // Meal slots
+  document.getElementById('bfCal').textContent = Math.round(mealCals.breakfast) + ' kcal';
+  document.getElementById('luCal').textContent = Math.round(mealCals.lunch) + ' kcal';
+  document.getElementById('diCal').textContent = Math.round(mealCals.dinner) + ' kcal';
+  document.getElementById('snCal').textContent = Math.round(mealCals.snack) + ' kcal';
+
+  // Water
+  let waterMl = log.water_ml;
+  const waterEl = document.getElementById('waterVal');
+  waterEl.textContent = waterMl + ' ml';
+
+  async function updateWater(delta) {
+    waterMl = Math.max(0, waterMl + delta);
+    countUp(waterEl, waterMl, ' ml');
+    try {
+      await databases.updateDocument(DATABASE_ID, COL_DAILY_LOGS, log.$id, { water_ml: waterMl, updated_at: new Date().toISOString() });
+    } catch (e) { showToast('Failed to update water', 'error'); }
+  }
+  document.getElementById('waterInc').addEventListener('click', () => updateWater(250));
+  document.getElementById('waterDec').addEventListener('click', () => updateWater(-250));
+
+  // Quick stats
+  const bmi = calcBMI(profile.weight_kg, profile.height_cm);
+  document.getElementById('statWeight').innerHTML = `⚖️ ${profile.weight_kg}kg<span>Weight</span>`;
+  document.getElementById('statTarget').innerHTML = `🎯 ${profile.target_weight_kg}kg<span>Target</span>`;
+  document.getElementById('statBmi').innerHTML = `📊 ${bmi}<span>BMI</span>`;
+
+  // Card entrance animation
+  anime({ targets: '#dashContent .card, #dashContent .card-simple, #dashContent .stats-row, #cheatBanner', translateY: [20, 0], opacity: [0, 1], delay: anime.stagger(80), duration: 500, easing: 'easeOutExpo' });
+
+  // Add button tap animation
+  document.querySelectorAll('.add-btn, .ghost-btn').forEach(b => {
+    b.addEventListener('click', () => anime({ targets: b, scale: [1, 0.94, 1], duration: 200 }));
+  });
+})();
+</script>
+</body>
+</html>

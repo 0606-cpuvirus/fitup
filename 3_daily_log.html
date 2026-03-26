@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>FitUp — Add Meal Entry</title>
+<meta name="description" content="Add a meal entry to your daily log.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+<style>
+:root{--bg:#0a0a0f;--surface:#12121a;--elevated:#1a1a26;--border:rgba(255,255,255,0.05);--accent:#7c5cfc;--green:#22d3a0;--amber:#f59e0b;--red:#f43f5e;--purple:#a855f7;--text:#f0f0ff;--muted:#6b6b8a}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;padding-bottom:80px}
+h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif}
+.page{max-width:430px;margin:0 auto;padding:16px}
+.header{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.back-link{color:var(--muted);text-decoration:none;font-size:1.2rem;padding:4px}
+.header h1{font-size:1.2rem;font-weight:700}
+.search-bar{width:100%;padding:12px 16px;background:var(--elevated);border:1px solid var(--border);border-radius:14px;color:var(--text);font-size:.95rem;font-family:'DM Sans',sans-serif;outline:none;margin-bottom:16px;transition:border-color .2s}
+.search-bar:focus{border-color:var(--accent)}
+.food-item{display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:10px;cursor:pointer;opacity:0;transition:background .2s}
+.food-item:hover{background:var(--elevated)}
+.food-info{flex:1;min-width:0}
+.food-name{font-weight:600;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.food-meta{color:var(--muted);font-size:.78rem;margin-top:2px}
+.food-add-btn{width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;border:none;font-size:1.2rem;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+/* Quantity Selector */
+.qty-panel{display:none;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:10px;opacity:0}
+.qty-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.qty-food-name{font-weight:700;font-size:1rem}
+.qty-serving{color:var(--muted);font-size:.82rem;margin-bottom:12px}
+.qty-controls{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:12px}
+.qty-btn{width:40px;height:40px;border-radius:12px;background:var(--elevated);border:1px solid var(--border);color:var(--text);font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif}
+.qty-val{font-size:1.5rem;font-weight:800;font-family:'Space Grotesk',sans-serif;min-width:50px;text-align:center}
+.qty-computed{text-align:center;color:var(--muted);font-size:.85rem;margin-bottom:14px}
+.qty-computed b{color:var(--text)}
+.note-input{width:100%;padding:10px 14px;background:var(--elevated);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:.88rem;font-family:'DM Sans',sans-serif;outline:none;margin-bottom:14px}
+.note-input:focus{border-color:var(--accent)}
+.qty-btns{display:flex;gap:10px}
+.btn-primary{flex:1;padding:12px;border:none;border-radius:14px;background:var(--accent);color:#fff;font-size:.95rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:filter .2s}
+.btn-primary:hover{filter:brightness(1.15)}
+.btn-ghost{flex:1;padding:12px;border:1px solid var(--border);border-radius:14px;background:transparent;color:var(--muted);font-size:.95rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
+.shimmer{border-radius:14px;background:linear-gradient(90deg,var(--elevated) 25%,var(--surface) 50%,var(--elevated) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;height:60px;margin-bottom:10px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-60px);padding:10px 24px;border-radius:30px;font-size:.88rem;font-weight:600;z-index:999;opacity:0;pointer-events:none;font-family:'DM Sans',sans-serif}
+.toast.success{background:var(--accent);color:#fff}
+.toast.error{background:var(--red);color:#fff}
+.toast.info{background:var(--muted);color:#fff}
+.empty-state{text-align:center;color:var(--muted);padding:40px 0;font-size:.92rem}
+/* Bottom Nav */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:var(--surface);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:8px 0 12px;z-index:100}
+.nav-tab{display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;color:var(--muted);font-size:.68rem;cursor:pointer;padding:4px 8px;position:relative;font-family:'DM Sans',sans-serif}
+.nav-tab .icon{font-size:1.3rem}
+.nav-tab.active .icon{transform:scale(1.2)}
+.nav-tab.active{color:var(--accent)}
+.nav-underline{position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);width:20px;height:3px;background:var(--accent);border-radius:2px;display:none}
+.nav-tab.active .nav-underline{display:block}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div class="page">
+  <div class="header">
+    <a href="2_dashboard.html" class="back-link">←</a>
+    <h1 id="pageTitle">Add to Breakfast</h1>
+  </div>
+  <input type="text" class="search-bar" id="searchInput" placeholder="Search foods…">
+  <div id="shimmerWrap">
+    <div class="shimmer"></div><div class="shimmer"></div><div class="shimmer"></div>
+  </div>
+  <div id="foodList"></div>
+  <div id="qtyPanel" class="qty-panel">
+    <div class="qty-header">
+      <div id="qtyIcon"></div>
+      <span class="qty-food-name" id="qtyFoodName"></span>
+    </div>
+    <div class="qty-serving" id="qtyServing"></div>
+    <div class="qty-controls">
+      <button class="qty-btn" id="qtyDec">−</button>
+      <div class="qty-val" id="qtyVal">1</div>
+      <button class="qty-btn" id="qtyInc">+</button>
+    </div>
+    <div class="qty-computed" id="qtyComputed"></div>
+    <input type="text" class="note-input" id="noteInput" placeholder="Add a note… (optional)">
+    <div class="qty-btns">
+      <button class="btn-ghost" id="qtyCancel">Cancel</button>
+      <button class="btn-primary" id="qtyAdd">Add Entry</button>
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <button class="nav-tab" onclick="location.href='2_dashboard.html'"><span class="icon">🏠</span>Home<div class="nav-underline"></div></button>
+  <button class="nav-tab active" onclick="location.href='3_daily_log.html'"><span class="icon">📋</span>Log<div class="nav-underline"></div></button>
+  <button class="nav-tab" onclick="location.href='4_food_library.html'"><span class="icon">🥗</span>Library<div class="nav-underline"></div></button>
+  <button class="nav-tab" onclick="location.href='7_history.html'"><span class="icon">📈</span>History<div class="nav-underline"></div></button>
+  <button class="nav-tab" onclick="location.href='6_profile.html'"><span class="icon">👤</span>Profile<div class="nav-underline"></div></button>
+</nav>
+
+<script type="module">
+import { getCurrentUser, databases, ID, Query,
+         DATABASE_ID, COL_FOOD_ITEMS, COL_DAILY_LOGS, COL_MEAL_ENTRIES,
+         renderFoodIcon, todayStr, userPermissions } from './appwrite.js';
+
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast ' + type;
+  anime({ targets: t, translateY: [-60, 0], opacity: [0,1], duration: 400, easing:'easeOutExpo' });
+  setTimeout(() => anime({ targets: t, opacity: 0, translateY: -30, duration: 300 }), 3000);
+}
+
+const params = new URLSearchParams(window.location.search);
+const slot = params.get('slot') || 'breakfast';
+document.getElementById('pageTitle').textContent = `Add to ${slot.charAt(0).toUpperCase()+slot.slice(1)}`;
+
+let allFoods = [];
+let selectedFood = null;
+let quantity = 1;
+let dailyLog = null;
+
+(async () => {
+  const user = await getCurrentUser();
+  if (!user) return;
+  const userId = user.$id;
+  const today = todayStr();
+
+  // Get/create daily log
+  try {
+    const logRes = await databases.listDocuments(DATABASE_ID, COL_DAILY_LOGS, [
+      Query.equal('user_id', userId), Query.equal('log_date', today), Query.limit(1)
+    ]);
+    if (logRes.documents.length) { dailyLog = logRes.documents[0]; }
+    else {
+      const now = new Date().toISOString();
+      dailyLog = await databases.createDocument(DATABASE_ID, COL_DAILY_LOGS, ID.unique(), {
+        user_id: userId, log_date: today, total_calories:0, total_protein_g:0,
+        total_carbs_g:0, total_fats_g:0, total_fiber_g:0, water_ml:0,
+        is_cheat_day:false, calories_remaining:0, calorie_deficit:0,
+        mood:'okay', note:'', created_at: now, updated_at: now
+      }, userPermissions(userId));
+    }
+  } catch (e) { showToast('Failed to load daily log', 'error'); return; }
+
+  // Fetch foods
+  try {
+    const res = await databases.listDocuments(DATABASE_ID, COL_FOOD_ITEMS, [
+      Query.equal('user_id', userId), Query.limit(100)
+    ]);
+    allFoods = res.documents;
+  } catch (e) { showToast('Failed to load foods', 'error'); }
+
+  document.getElementById('shimmerWrap').style.display = 'none';
+  renderFoods(allFoods);
+})();
+
+function renderFoods(foods) {
+  const list = document.getElementById('foodList');
+  list.innerHTML = '';
+  if (!foods.length) { list.innerHTML = '<div class="empty-state">No foods found. Add some in the Food Library!</div>'; return; }
+  foods.forEach((f, i) => {
+    const row = document.createElement('div');
+    row.className = 'food-item';
+    row.id = 'food-' + f.$id;
+    const iconEl = renderFoodIcon(f.icon_type, f.icon_key, 40);
+    const info = document.createElement('div');
+    info.className = 'food-info';
+    info.innerHTML = `<div class="food-name">${f.name}</div><div class="food-meta">${f.calories} kcal / ${f.serving_size} ${f.serving_unit}</div>`;
+    const addBtn = document.createElement('button');
+    addBtn.className = 'food-add-btn';
+    addBtn.textContent = '+';
+    addBtn.addEventListener('click', (e) => { e.stopPropagation(); openQty(f); });
+    row.appendChild(iconEl); row.appendChild(info); row.appendChild(addBtn);
+    row.addEventListener('click', () => openQty(f));
+    list.appendChild(row);
+  });
+  anime({ targets: '.food-item', translateY: [10, 0], opacity: [0, 1], delay: anime.stagger(50), duration: 400, easing: 'easeOutExpo' });
+}
+
+// Search
+let searchTimer;
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    const q = e.target.value.toLowerCase().trim();
+    renderFoods(q ? allFoods.filter(f => f.name.toLowerCase().includes(q)) : allFoods);
+  }, 300);
+});
+
+// Quantity panel
+function openQty(food) {
+  selectedFood = food;
+  quantity = 1;
+  const panel = document.getElementById('qtyPanel');
+  panel.style.display = 'block';
+  const iconContainer = document.getElementById('qtyIcon');
+  iconContainer.innerHTML = '';
+  iconContainer.appendChild(renderFoodIcon(food.icon_type, food.icon_key, 48));
+  document.getElementById('qtyFoodName').textContent = food.name;
+  document.getElementById('qtyServing').textContent = `Serving: ${food.serving_size} ${food.serving_unit}`;
+  updateQtyDisplay();
+  anime({ targets: panel, opacity: [0,1], translateY: [20, 0], duration: 400, easing: 'spring(1, 80, 10, 0)' });
+  panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function updateQtyDisplay() {
+  document.getElementById('qtyVal').textContent = quantity;
+  if (!selectedFood) return;
+  const cal = Math.round(selectedFood.calories * quantity);
+  const p = Math.round(selectedFood.protein_g * quantity * 10) / 10;
+  const c = Math.round(selectedFood.carbs_g * quantity * 10) / 10;
+  const f = Math.round(selectedFood.fats_g * quantity * 10) / 10;
+  document.getElementById('qtyComputed').innerHTML = `<b>${cal} kcal</b> | P:${p}g C:${c}g F:${f}g`;
+}
+
+document.getElementById('qtyInc').addEventListener('click', () => {
+  quantity = Math.round((quantity + 0.5) * 10) / 10;
+  anime({ targets: '#qtyVal', translateY: [-10, 0], duration: 200, easing: 'easeOutExpo' });
+  updateQtyDisplay();
+});
+document.getElementById('qtyDec').addEventListener('click', () => {
+  if (quantity > 0.5) quantity = Math.round((quantity - 0.5) * 10) / 10;
+  anime({ targets: '#qtyVal', translateY: [10, 0], duration: 200, easing: 'easeOutExpo' });
+  updateQtyDisplay();
+});
+document.getElementById('qtyCancel').addEventListener('click', () => {
+  anime({ targets: '#qtyPanel', opacity: 0, translateY: 20, duration: 200, complete: () => {
+    document.getElementById('qtyPanel').style.display = 'none';
+  }});
+  selectedFood = null;
+});
+
+// Add entry
+document.getElementById('qtyAdd').addEventListener('click', async () => {
+  if (!selectedFood || !dailyLog) return;
+  const btn = document.getElementById('qtyAdd');
+  anime({ targets: btn, scale: [1, 0.94, 1], duration: 200 });
+  btn.disabled = true;
+  btn.textContent = 'Adding…';
+
+  const user = await getCurrentUser();
+  if (!user) return;
+  const userId = user.$id;
+
+  try {
+    await databases.createDocument(DATABASE_ID, COL_MEAL_ENTRIES, ID.unique(), {
+      user_id: userId,
+      daily_log_id: dailyLog.$id,
+      food_item_id: selectedFood.$id,
+      meal_slot: slot,
+      quantity,
+      calories_consumed: Math.round(selectedFood.calories * quantity * 10) / 10,
+      protein_consumed_g: Math.round(selectedFood.protein_g * quantity * 10) / 10,
+      carbs_consumed_g: Math.round(selectedFood.carbs_g * quantity * 10) / 10,
+      fats_consumed_g: Math.round(selectedFood.fats_g * quantity * 10) / 10,
+      logged_at: new Date().toISOString(),
+      note: document.getElementById('noteInput').value.trim()
+    }, userPermissions(userId));
+
+    // Recalculate totals
+    const entries = await databases.listDocuments(DATABASE_ID, COL_MEAL_ENTRIES, [
+      Query.equal('daily_log_id', dailyLog.$id), Query.limit(100)
+    ]);
+    let tc=0,tp=0,tca=0,tf=0;
+    entries.documents.forEach(e => { tc+=e.calories_consumed; tp+=e.protein_consumed_g; tca+=e.carbs_consumed_g; tf+=e.fats_consumed_g; });
+    await databases.updateDocument(DATABASE_ID, COL_DAILY_LOGS, dailyLog.$id, {
+      total_calories: Math.round(tc), total_protein_g: Math.round(tp*10)/10,
+      total_carbs_g: Math.round(tca*10)/10, total_fats_g: Math.round(tf*10)/10,
+      updated_at: new Date().toISOString()
+    });
+
+    // Success flash
+    anime({ targets: btn, backgroundColor: ['#7c5cfc','#22d3a0','#7c5cfc'], duration: 600 });
+    showToast('Entry added!');
+    setTimeout(() => { window.location.href = '2_dashboard.html'; }, 600);
+  } catch (e) {
+    showToast(e.message || 'Failed to add entry', 'error');
+    btn.disabled = false;
+    btn.textContent = 'Add Entry';
+  }
+});
+</script>
+</body>
+</html>

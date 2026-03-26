@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>FitUp — Add Food</title>
+<meta name="description" content="Add or edit a food item in your library.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+<style>
+:root{--bg:#0a0a0f;--surface:#12121a;--elevated:#1a1a26;--border:rgba(255,255,255,0.05);--accent:#7c5cfc;--green:#22d3a0;--amber:#f59e0b;--red:#f43f5e;--purple:#a855f7;--text:#f0f0ff;--muted:#6b6b8a}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;padding-bottom:100px}
+h1,h2,h3{font-family:'Space Grotesk',sans-serif}
+.page{max-width:430px;margin:0 auto;padding:16px}
+.header{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.back-link{color:var(--muted);text-decoration:none;font-size:1.2rem;padding:4px}
+.header h1{font-size:1.2rem;font-weight:700}
+/* Icon Selector */
+.icon-preview{width:80px;height:80px;margin:0 auto 16px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(var(--surface),var(--surface)) padding-box,linear-gradient(135deg,rgba(124,92,252,.5),rgba(34,211,160,.3)) border-box;border:2px solid transparent;overflow:hidden}
+.icon-row{display:flex;gap:8px;overflow-x:auto;padding:6px 0 12px;margin-bottom:6px;scrollbar-width:none}
+.icon-row::-webkit-scrollbar{display:none}
+.icon-option{width:44px;height:44px;border-radius:12px;background:var(--elevated);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:border-color .2s}
+.icon-option.active{border-color:var(--accent);background:rgba(124,92,252,.15)}
+.special-btns{display:flex;gap:8px;margin-bottom:16px}
+.special-btn{flex:1;padding:10px;border-radius:12px;background:var(--elevated);border:1px solid var(--border);color:var(--muted);font-size:.82rem;font-weight:600;cursor:pointer;text-align:center;font-family:'DM Sans',sans-serif;transition:border-color .2s}
+.special-btn:hover{border-color:var(--accent)}
+.emoji-input-wrap{display:none;margin-bottom:12px}
+.emoji-input{width:100%;padding:10px 14px;background:var(--elevated);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:1.2rem;text-align:center;outline:none;font-family:'DM Sans',sans-serif}
+.emoji-input:focus{border-color:var(--accent)}
+/* Form */
+.form-group{margin-bottom:14px;opacity:0}
+.form-group label{display:block;font-size:.82rem;color:var(--muted);margin-bottom:6px;font-weight:500}
+.form-group input,.form-group select{width:100%;padding:13px 16px;background:var(--elevated);border:1px solid var(--border);border-radius:14px;color:var(--text);font-size:.95rem;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s}
+.form-group input:focus,.form-group select:focus{border-color:var(--accent)}
+.form-group select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6b8a' stroke-width='2' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 16px center}
+.form-row{display:flex;gap:10px}
+.form-row .form-group{flex:1}
+.section-label{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin:18px 0 10px;font-weight:600}
+.toggle-optional{color:var(--accent);font-size:.82rem;cursor:pointer;margin-top:4px;display:inline-block}
+.optional-fields{display:none;overflow:hidden}
+.optional-fields.show{display:block}
+.btn-primary{width:100%;padding:14px;border:none;border-radius:14px;background:var(--accent);color:#fff;font-size:1rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;opacity:0}
+.btn-primary:hover{filter:brightness(1.15)}
+.btn-primary:disabled{opacity:.6;cursor:not-allowed}
+.cancel-link{display:block;text-align:center;color:var(--muted);margin-top:12px;font-size:.9rem;cursor:pointer;text-decoration:none}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-60px);padding:10px 24px;border-radius:30px;font-size:.88rem;font-weight:600;z-index:999;opacity:0;pointer-events:none}
+.toast.success{background:var(--accent);color:#fff}
+.toast.error{background:var(--red);color:#fff}
+.shimmer{border-radius:14px;background:linear-gradient(90deg,var(--elevated) 25%,var(--surface) 50%,var(--elevated) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;height:50px;margin-bottom:10px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:var(--surface);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:8px 0 12px;z-index:100}
+.nav-tab{display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;color:var(--muted);font-size:.68rem;cursor:pointer;padding:4px 8px;position:relative;font-family:'DM Sans',sans-serif}
+.nav-tab .icon{font-size:1.3rem}
+.nav-tab.active .icon{transform:scale(1.2)}
+.nav-tab.active{color:var(--accent)}
+.nav-underline{position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);width:20px;height:3px;background:var(--accent);border-radius:2px;display:none}
+.nav-tab.active .nav-underline{display:block}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div class="page">
+  <div class="header">
+    <a href="4_food_library.html" class="back-link">←</a>
+    <h1 id="pageTitle">Add Food</h1>
+  </div>
+
+  <div class="icon-preview" id="iconPreview"></div>
+  <div class="icon-row" id="iconRow"></div>
+  <div class="special-btns">
+    <button class="special-btn" id="photoBtnTrigger">📷 Photo</button>
+    <button class="special-btn" id="emojiBtnTrigger">🎨 Emoji</button>
+  </div>
+  <input type="file" id="photoInput" accept="image/jpeg,image/png,image/webp" style="display:none">
+  <div class="emoji-input-wrap" id="emojiWrap">
+    <input type="text" class="emoji-input" id="emojiInput" placeholder="Paste an emoji…" maxlength="4">
+  </div>
+
+  <form id="foodForm">
+    <div class="form-group"><label>Name</label><input type="text" id="fName" required placeholder="e.g. Chicken Breast"></div>
+    <div class="form-group">
+      <label>Category</label>
+      <select id="fCategory" required>
+        <option value="breakfast">Breakfast</option>
+        <option value="lunch">Lunch</option>
+        <option value="dinner">Dinner</option>
+        <option value="snack">Snack</option>
+        <option value="drink">Drink</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Serving Size</label><input type="number" id="fServingSize" required min="0.1" step="0.1" placeholder="1"></div>
+      <div class="form-group">
+        <label>Serving Unit</label>
+        <select id="fServingUnit" required>
+          <option value="g">g</option>
+          <option value="ml">ml</option>
+          <option value="piece">piece</option>
+          <option value="cup">cup</option>
+          <option value="tbsp">tbsp</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section-label">Nutrition per serving</div>
+    <div class="form-group"><label>Calories</label><input type="number" id="fCalories" required min="0" step="0.1" placeholder="0"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Protein (g)</label><input type="number" id="fProtein" required min="0" step="0.1" placeholder="0"></div>
+      <div class="form-group"><label>Carbs (g)</label><input type="number" id="fCarbs" required min="0" step="0.1" placeholder="0"></div>
+      <div class="form-group"><label>Fats (g)</label><input type="number" id="fFats" required min="0" step="0.1" placeholder="0"></div>
+    </div>
+
+    <span class="toggle-optional" id="toggleOpt">Show optional fields ↓</span>
+    <div class="optional-fields" id="optFields">
+      <div class="form-row" style="margin-top:10px">
+        <div class="form-group"><label>Fiber (g)</label><input type="number" id="fFiber" min="0" step="0.1" placeholder="0"></div>
+        <div class="form-group"><label>Sugar (g)</label><input type="number" id="fSugar" min="0" step="0.1" placeholder="0"></div>
+        <div class="form-group"><label>Sodium (mg)</label><input type="number" id="fSodium" min="0" step="0.1" placeholder="0"></div>
+      </div>
+    </div>
+
+    <button class="btn-primary" type="submit" id="saveBtn">Save Food</button>
+    <a href="4_food_library.html" class="cancel-link">Cancel</a>
+  </form>
+</div>
+
+<nav class="bottom-nav">
+  <button class="nav-tab" onclick="location.href='2_dashboard.html'"><span class="icon">🏠</span>Home<div class="nav-underline"></div></button>
+  <button class="nav-tab" onclick="location.href='3_daily_log.html'"><span class="icon">📋</span>Log<div class="nav-underline"></div></button>
+  <button class="nav-tab active" onclick="location.href='4_food_library.html'"><span class="icon">🥗</span>Library<div class="nav-underline"></div></button>
+  <button class="nav-tab" onclick="location.href='7_history.html'"><span class="icon">📈</span>History<div class="nav-underline"></div></button>
+  <button class="nav-tab" onclick="location.href='6_profile.html'"><span class="icon">👤</span>Profile<div class="nav-underline"></div></button>
+</nav>
+
+<script type="module">
+import { getCurrentUser, databases, storage, ID, Query,
+         DATABASE_ID, COL_FOOD_ITEMS, BUCKET_FOOD_PHOTOS,
+         renderFoodIcon, userPermissions } from './appwrite.js';
+
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast ' + type;
+  anime({ targets: t, translateY: [-60, 0], opacity: [0,1], duration: 400, easing:'easeOutExpo' });
+  setTimeout(() => anime({ targets: t, opacity: 0, translateY: -30, duration: 300 }), 3000);
+}
+
+const params = new URLSearchParams(window.location.search);
+const editId = params.get('id');
+const isEdit = !!editId;
+if (isEdit) document.getElementById('pageTitle').textContent = 'Edit Food';
+
+const presetKeys = ['paratha_oil','paratha_dry','boiled_egg','fried_egg','milk_tea','coffee','rice','roti','banana','apple'];
+let selectedIconType = 'svg_preset';
+let selectedIconKey = presetKeys[0];
+let photoFile = null;
+
+// Render icon row
+const iconRow = document.getElementById('iconRow');
+presetKeys.forEach(key => {
+  const opt = document.createElement('div');
+  opt.className = 'icon-option' + (key === selectedIconKey ? ' active' : '');
+  opt.dataset.key = key;
+  opt.appendChild(renderFoodIcon('svg_preset', key, 30));
+  opt.addEventListener('click', () => {
+    selectedIconType = 'svg_preset';
+    selectedIconKey = key;
+    photoFile = null;
+    document.querySelectorAll('.icon-option').forEach(o => o.classList.remove('active'));
+    opt.classList.add('active');
+    updatePreview();
+    anime({ targets: opt, scale: [1, 1.4, 0.9, 1.1, 1], duration: 500, easing: 'easeOutElastic(1,.5)' });
+  });
+  iconRow.appendChild(opt);
+});
+
+function updatePreview() {
+  const preview = document.getElementById('iconPreview');
+  preview.innerHTML = '';
+  if (photoFile) {
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(photoFile);
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%';
+    preview.appendChild(img);
+  } else {
+    preview.appendChild(renderFoodIcon(selectedIconType, selectedIconKey, 48));
+  }
+}
+updatePreview();
+
+// Photo
+document.getElementById('photoBtnTrigger').addEventListener('click', () => document.getElementById('photoInput').click());
+document.getElementById('photoInput').addEventListener('change', (e) => {
+  if (e.target.files[0]) {
+    photoFile = e.target.files[0];
+    selectedIconType = 'photo';
+    document.querySelectorAll('.icon-option').forEach(o => o.classList.remove('active'));
+    updatePreview();
+  }
+});
+
+// Emoji
+document.getElementById('emojiBtnTrigger').addEventListener('click', () => {
+  const w = document.getElementById('emojiWrap');
+  w.style.display = w.style.display === 'none' || !w.style.display ? 'block' : 'none';
+});
+document.getElementById('emojiInput').addEventListener('input', (e) => {
+  const val = e.target.value.trim();
+  if (val) {
+    selectedIconType = 'emoji';
+    selectedIconKey = val;
+    photoFile = null;
+    document.querySelectorAll('.icon-option').forEach(o => o.classList.remove('active'));
+    updatePreview();
+  }
+});
+
+// Toggle optional
+document.getElementById('toggleOpt').addEventListener('click', () => {
+  const f = document.getElementById('optFields');
+  const open = f.classList.toggle('show');
+  document.getElementById('toggleOpt').textContent = open ? 'Hide optional fields ↑' : 'Show optional fields ↓';
+  if (open) anime({ targets: '#optFields .form-group', opacity: [0,1], translateY: [10,0], delay: anime.stagger(60), duration: 300 });
+});
+
+// Edit mode: prefill
+(async () => {
+  const user = await getCurrentUser();
+  if (!user) return;
+
+  if (isEdit) {
+    try {
+      const doc = await databases.getDocument(DATABASE_ID, COL_FOOD_ITEMS, editId);
+      document.getElementById('fName').value = doc.name;
+      document.getElementById('fCategory').value = doc.category;
+      document.getElementById('fServingSize').value = doc.serving_size;
+      document.getElementById('fServingUnit').value = doc.serving_unit;
+      document.getElementById('fCalories').value = doc.calories;
+      document.getElementById('fProtein').value = doc.protein_g;
+      document.getElementById('fCarbs').value = doc.carbs_g;
+      document.getElementById('fFats').value = doc.fats_g;
+      if (doc.fiber_g) document.getElementById('fFiber').value = doc.fiber_g;
+      if (doc.sugar_g) document.getElementById('fSugar').value = doc.sugar_g;
+      if (doc.sodium_mg) document.getElementById('fSodium').value = doc.sodium_mg;
+      selectedIconType = doc.icon_type;
+      selectedIconKey = doc.icon_key;
+      if (doc.icon_type === 'svg_preset') {
+        document.querySelectorAll('.icon-option').forEach(o => {
+          o.classList.toggle('active', o.dataset.key === doc.icon_key);
+        });
+      }
+      updatePreview();
+    } catch (e) { showToast('Failed to load food', 'error'); }
+  }
+
+  // Form entrance animation
+  anime({ targets: '.form-group, .btn-primary', translateY: [15, 0], opacity: [0, 1], delay: anime.stagger(50, { start: 100 }), duration: 400, easing: 'easeOutExpo' });
+})();
+
+// Save
+document.getElementById('foodForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('saveBtn');
+  anime({ targets: btn, scale: [1, 0.94, 1], duration: 200 });
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  const user = await getCurrentUser();
+  if (!user) return;
+  const userId = user.$id;
+
+  try {
+    let iconType = selectedIconType;
+    let iconKey = selectedIconKey;
+
+    // Upload photo if needed
+    if (photoFile) {
+      const uploaded = await storage.createFile(BUCKET_FOOD_PHOTOS, ID.unique(), photoFile);
+      iconKey = uploaded.$id;
+      iconType = 'photo';
+    }
+
+    const data = {
+      user_id: userId,
+      name: document.getElementById('fName').value.trim(),
+      category: document.getElementById('fCategory').value,
+      serving_size: parseFloat(document.getElementById('fServingSize').value),
+      serving_unit: document.getElementById('fServingUnit').value,
+      calories: parseFloat(document.getElementById('fCalories').value),
+      protein_g: parseFloat(document.getElementById('fProtein').value),
+      carbs_g: parseFloat(document.getElementById('fCarbs').value),
+      fats_g: parseFloat(document.getElementById('fFats').value),
+      fiber_g: parseFloat(document.getElementById('fFiber').value) || 0,
+      sugar_g: parseFloat(document.getElementById('fSugar').value) || 0,
+      sodium_mg: parseFloat(document.getElementById('fSodium').value) || 0,
+      icon_type: iconType,
+      icon_key: iconKey,
+      is_preset: false,
+    };
+
+    if (isEdit) {
+      await databases.updateDocument(DATABASE_ID, COL_FOOD_ITEMS, editId, data);
+    } else {
+      data.created_at = new Date().toISOString();
+      await databases.createDocument(DATABASE_ID, COL_FOOD_ITEMS, ID.unique(), data, userPermissions(userId));
+    }
+
+    anime({ targets: btn, backgroundColor: ['#7c5cfc','#22d3a0'], duration: 400 });
+    showToast(isEdit ? 'Food updated!' : 'Food added!');
+    setTimeout(() => { window.location.href = '4_food_library.html'; }, 600);
+  } catch (err) {
+    showToast(err.message || 'Save failed', 'error');
+    btn.disabled = false;
+    btn.textContent = 'Save Food';
+  }
+});
+</script>
+</body>
+</html>

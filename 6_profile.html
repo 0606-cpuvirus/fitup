@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>FitUp — Profile & Settings</title>
+<meta name="description" content="Manage your profile, body stats, and weight log.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+<style>
+:root{--bg:#0a0a0f;--surface:#12121a;--elevated:#1a1a26;--border:rgba(255,255,255,0.05);--accent:#7c5cfc;--green:#22d3a0;--amber:#f59e0b;--red:#f43f5e;--purple:#a855f7;--text:#f0f0ff;--muted:#6b6b8a}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;padding-bottom:100px}
+h1,h2,h3{font-family:'Space Grotesk',sans-serif}
+.page{max-width:430px;margin:0 auto;padding:16px}
+.card{background:linear-gradient(var(--surface),var(--surface)) padding-box,linear-gradient(135deg,rgba(124,92,252,.3),transparent) border-box;border:1px solid transparent;border-radius:16px;padding:20px;margin-bottom:14px;box-shadow:0 4px 24px rgba(124,92,252,.07)}
+.card-simple{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:14px}
+/* Avatar */
+.avatar-section{text-align:center;margin-bottom:18px}
+.avatar-lg{width:80px;height:80px;border-radius:50%;background:var(--accent);display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:1.5rem;overflow:hidden;cursor:pointer;font-family:'Space Grotesk',sans-serif}
+.avatar-lg img{width:100%;height:100%;object-fit:cover}
+.profile-name{font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:700;margin-top:10px}
+.profile-email{color:var(--muted);font-size:.85rem}
+/* Stat rows */
+.stat-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);opacity:0}
+.stat-row:last-child{border-bottom:none}
+.stat-label{color:var(--muted);font-size:.85rem;font-weight:500}
+.stat-value{font-weight:600;font-size:.95rem}
+.stat-edit-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:.9rem;padding:2px 6px}
+.stat-edit-btn:hover{color:var(--accent)}
+/* Inline edit */
+.edit-inline{display:none;align-items:center;gap:8px;margin-top:6px}
+.edit-inline.show{display:flex}
+.edit-inline input,.edit-inline select{padding:8px 12px;background:var(--elevated);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:.88rem;outline:none;font-family:'DM Sans',sans-serif;flex:1}
+.edit-inline input:focus,.edit-inline select:focus{border-color:var(--accent)}
+.edit-inline select{appearance:none}
+.save-sm{padding:6px 14px;border-radius:10px;background:var(--accent);color:#fff;border:none;font-size:.82rem;font-weight:600;cursor:pointer}
+.cancel-sm{padding:6px 14px;border-radius:10px;background:var(--elevated);color:var(--muted);border:none;font-size:.82rem;font-weight:600;cursor:pointer}
+/* Calculated section */
+.calc-row{display:flex;justify-content:space-between;padding:8px 0;font-size:.88rem}
+.calc-label{color:var(--muted)}
+.calc-value{font-weight:600}
+/* Weight log */
+.weight-input-row{display:flex;gap:10px;margin-bottom:14px}
+.weight-input-row input{flex:1;padding:12px 16px;background:var(--elevated);border:1px solid var(--border);border-radius:14px;color:var(--text);font-size:.95rem;outline:none}
+.weight-input-row input:focus{border-color:var(--accent)}
+.weight-input-row button{padding:12px 20px;border-radius:14px;background:var(--accent);color:#fff;border:none;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif}
+/* Sparkline */
+.sparkline-wrap{margin-top:10px}
+.sparkline-label{color:var(--muted);font-size:.82rem;text-align:center;margin-top:8px}
+/* Action buttons */
+.action-btn{width:100%;padding:14px;border-radius:14px;font-size:.95rem;font-weight:600;cursor:pointer;margin-bottom:10px;text-align:center;font-family:'DM Sans',sans-serif;transition:all .2s}
+.btn-logout{background:transparent;border:1px solid var(--border);color:var(--muted)}
+.btn-logout:hover{border-color:var(--accent);color:var(--text)}
+.btn-delete-acc{background:transparent;border:1px solid rgba(244,63,94,.3);color:var(--red)}
+.btn-delete-acc:hover{border-color:var(--red);background:rgba(244,63,94,.1)}
+.confirm-inline{display:none;text-align:center;padding:10px;background:rgba(244,63,94,.1);border-radius:12px;margin-bottom:10px;font-size:.88rem}
+.confirm-inline.show{display:block}
+.confirm-inline button{margin:6px 4px 0;padding:6px 18px;border-radius:10px;font-size:.82rem;font-weight:600;cursor:pointer;border:none;font-family:'DM Sans',sans-serif}
+.confirm-inline .yes{background:var(--red);color:#fff}
+.confirm-inline .no{background:var(--elevated);color:var(--text)}
+.shimmer{border-radius:14px;background:linear-gradient(90deg,var(--elevated) 25%,var(--surface) 50%,var(--elevated) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;height:40px;margin-bottom:10px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-60px);padding:10px 24px;border-radius:30px;font-size:.88rem;font-weight:600;z-index:999;opacity:0;pointer-events:none}
+.toast.success{background:var(--accent);color:#fff}
+.toast.error{background:var(--red);color:#fff}
+.toast.info{background:var(--muted);color:#fff}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:var(--surface);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:8px 0 12px;z-index:100}
+.nav-tab{display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;color:var(--muted);font-size:.68rem;cursor:pointer;padding:4px 8px;position:relative;font-family:'DM Sans',sans-serif}
+.nav-tab .icon{font-size:1.3rem}
+.nav-tab.active .icon{transform:scale(1.2)}
+.nav-tab.active{color:var(--accent)}
+.nav-underline{position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);width:20px;height:3px;background:var(--accent);border-radius:2px;display:none}
+.nav-tab.active .nav-underline{display:block}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div class="page" id="mainPage">
+  <div id="shimmerWrap"><div class="shimmer" style="height:120px"></div><div class="shimmer" style="height:300px"></div><div class="shimmer" style="height:120px"></div></div>
+  <div id="content" style="display:none">
+    <div class="avatar-section">
+      <div class="avatar-lg" id="avatarLg"></div>
+      <input type="file" id="avatarInput" accept="image/jpeg,image/png,image/webp" style="display:none">
+      <div class="profile-name" id="profileName"></div>
+      <div class="profile-email" id="profileEmail"></div>
+    </div>
+
+    <div class="card" id="statsCard">
+      <div class="stat-row" data-field="age"><span class="stat-label">Age</span><span class="stat-value" id="valAge"></span><button class="stat-edit-btn">✏️</button>
+        <div class="edit-inline"><input type="number" min="1" max="120"><button class="save-sm">Save</button><button class="cancel-sm">Cancel</button></div>
+      </div>
+      <div class="stat-row" data-field="height_cm"><span class="stat-label">Height (cm)</span><span class="stat-value" id="valHeight"></span><button class="stat-edit-btn">✏️</button>
+        <div class="edit-inline"><input type="number" min="50" max="300" step="0.1"><button class="save-sm">Save</button><button class="cancel-sm">Cancel</button></div>
+      </div>
+      <div class="stat-row" data-field="weight_kg"><span class="stat-label">Current Weight (kg)</span><span class="stat-value" id="valWeight"></span><button class="stat-edit-btn">✏️</button>
+        <div class="edit-inline"><input type="number" min="1" max="500" step="0.1"><button class="save-sm">Save</button><button class="cancel-sm">Cancel</button></div>
+      </div>
+      <div class="stat-row" data-field="target_weight_kg"><span class="stat-label">Target Weight (kg)</span><span class="stat-value" id="valTarget"></span><button class="stat-edit-btn">✏️</button>
+        <div class="edit-inline"><input type="number" min="1" max="500" step="0.1"><button class="save-sm">Save</button><button class="cancel-sm">Cancel</button></div>
+      </div>
+      <div class="stat-row" data-field="activity_level"><span class="stat-label">Activity Level</span><span class="stat-value" id="valActivity"></span><button class="stat-edit-btn">✏️</button>
+        <div class="edit-inline"><select><option value="sedentary">Sedentary</option><option value="light">Light</option><option value="moderate">Moderate</option><option value="active">Active</option><option value="very_active">Very Active</option></select><button class="save-sm">Save</button><button class="cancel-sm">Cancel</button></div>
+      </div>
+      <div class="stat-row" data-field="goal"><span class="stat-label">Goal</span><span class="stat-value" id="valGoal"></span><button class="stat-edit-btn">✏️</button>
+        <div class="edit-inline"><select><option value="lose">Lose</option><option value="maintain">Maintain</option><option value="gain">Gain</option></select><button class="save-sm">Save</button><button class="cancel-sm">Cancel</button></div>
+      </div>
+    </div>
+
+    <div class="card-simple" id="calcCard">
+      <div class="calc-row"><span class="calc-label">Maintenance Calories</span><span class="calc-value" id="calcMaint"></span></div>
+      <div class="calc-row"><span class="calc-label">Daily Target</span><span class="calc-value" id="calcTarget"></span></div>
+      <div class="calc-row"><span class="calc-label">Protein / Carbs / Fats</span><span class="calc-value" id="calcMacros"></span></div>
+      <div class="stat-row" data-field="cheat_day_threshold" style="border-bottom:none;padding-bottom:0"><span class="stat-label">Cheat Day Threshold</span><span class="stat-value" id="valCheat"></span><button class="stat-edit-btn">✏️</button>
+        <div class="edit-inline"><input type="number" min="500" max="10000"><button class="save-sm">Save</button><button class="cancel-sm">Cancel</button></div>
+      </div>
+    </div>
+
+    <div class="card" id="weightCard">
+      <h3 style="font-size:1rem;margin-bottom:12px">Log Weight</h3>
+      <div class="weight-input-row">
+        <input type="number" id="weightInput" placeholder="e.g. 72.5" min="1" max="500" step="0.1">
+        <button id="weightSaveBtn">Save</button>
+      </div>
+      <div class="sparkline-wrap"><svg id="sparklineSvg" viewBox="0 0 300 80" width="100%" height="80"></svg></div>
+      <div class="sparkline-label" id="sparklineLabel"></div>
+    </div>
+
+    <button class="action-btn btn-logout" id="logoutBtn">Logout</button>
+    <button class="action-btn btn-delete-acc" id="deleteAccBtn">Delete Account</button>
+    <div class="confirm-inline" id="deleteConfirm">
+      <div>Are you sure? This cannot be undone.</div>
+      <button class="yes" id="confirmDeleteYes">Delete</button>
+      <button class="no" id="confirmDeleteNo">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <button class="nav-tab" onclick="location.href='2_dashboard.html'"><span class="icon">🏠</span>Home<div class="nav-underline"></div></button>
+  <button class="nav-tab" onclick="location.href='3_daily_log.html'"><span class="icon">📋</span>Log<div class="nav-underline"></div></button>
+  <button class="nav-tab" onclick="location.href='4_food_library.html'"><span class="icon">🥗</span>Library<div class="nav-underline"></div></button>
+  <button class="nav-tab" onclick="location.href='7_history.html'"><span class="icon">📈</span>History<div class="nav-underline"></div></button>
+  <button class="nav-tab active" onclick="location.href='6_profile.html'"><span class="icon">👤</span>Profile<div class="nav-underline"></div></button>
+</nav>
+
+<script type="module">
+import { getCurrentUser, account, databases, storage, ID, Query,
+         DATABASE_ID, COL_USERS_PROFILE, COL_WEIGHT_HISTORY, BUCKET_FOOD_PHOTOS,
+         calcTDEE, calcTargets, cacheSet, cacheClear, userPermissions } from './appwrite.js';
+
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast ' + type;
+  anime({ targets: t, translateY: [-60, 0], opacity: [0,1], duration: 400, easing:'easeOutExpo' });
+  setTimeout(() => anime({ targets: t, opacity: 0, translateY: -30, duration: 300 }), 3000);
+}
+
+let profile = null;
+let profileDocId = null;
+
+(async () => {
+  const user = await getCurrentUser();
+  if (!user) return;
+  const userId = user.$id;
+
+  try {
+    const res = await databases.listDocuments(DATABASE_ID, COL_USERS_PROFILE, [Query.equal('user_id', userId), Query.limit(1)]);
+    if (res.documents.length) { profile = res.documents[0]; profileDocId = profile.$id; }
+  } catch (e) { showToast('Failed to load profile', 'error'); return; }
+  if (!profile) { showToast('Profile not found', 'error'); return; }
+
+  document.getElementById('shimmerWrap').style.display = 'none';
+  document.getElementById('content').style.display = 'block';
+
+  // Avatar
+  const av = document.getElementById('avatarLg');
+  if (profile.avatar_url) { av.innerHTML = `<img src="${profile.avatar_url}" alt="avatar">`; }
+  else { av.textContent = profile.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
+  av.addEventListener('click', () => document.getElementById('avatarInput').click());
+  document.getElementById('avatarInput').addEventListener('change', async (e) => {
+    if (!e.target.files[0]) return;
+    try {
+      const file = await storage.createFile(BUCKET_FOOD_PHOTOS, ID.unique(), e.target.files[0]);
+      const url = storage.getFilePreview(BUCKET_FOOD_PHOTOS, file.$id);
+      await databases.updateDocument(DATABASE_ID, COL_USERS_PROFILE, profileDocId, { avatar_url: url, updated_at: new Date().toISOString() });
+      av.innerHTML = `<img src="${url}" alt="avatar">`;
+      showToast('Avatar updated!');
+    } catch (e) { showToast('Upload failed', 'error'); }
+  });
+
+  document.getElementById('profileName').textContent = profile.name;
+  document.getElementById('profileEmail').textContent = user.email;
+
+  // Render stats
+  function renderStats() {
+    document.getElementById('valAge').textContent = profile.age;
+    document.getElementById('valHeight').textContent = profile.height_cm + ' cm';
+    document.getElementById('valWeight').textContent = profile.weight_kg + ' kg';
+    document.getElementById('valTarget').textContent = profile.target_weight_kg + ' kg';
+    document.getElementById('valActivity').textContent = profile.activity_level.replace('_', ' ');
+    document.getElementById('valGoal').textContent = profile.goal;
+    document.getElementById('calcMaint').textContent = profile.maintenance_calories + ' kcal';
+    document.getElementById('calcTarget').textContent = profile.daily_calorie_target + ' kcal';
+    document.getElementById('calcMacros').textContent = `${Math.round(profile.protein_target_g)}g / ${Math.round(profile.carbs_target_g)}g / ${Math.round(profile.fats_target_g)}g`;
+    document.getElementById('valCheat').textContent = (profile.cheat_day_threshold || 2000) + ' kcal';
+  }
+  renderStats();
+
+  // Inline edit wiring
+  document.querySelectorAll('.stat-row').forEach(row => {
+    const field = row.dataset.field;
+    if (!field) return;
+    const editBtn = row.querySelector('.stat-edit-btn');
+    const editInline = row.querySelector('.edit-inline');
+    const inputEl = editInline.querySelector('input, select');
+    const saveBtn = editInline.querySelector('.save-sm');
+    const cancelBtn = editInline.querySelector('.cancel-sm');
+
+    editBtn.addEventListener('click', () => {
+      editInline.classList.add('show');
+      if (inputEl.tagName === 'SELECT') inputEl.value = profile[field];
+      else inputEl.value = profile[field];
+      anime({ targets: editInline, opacity: [0,1], maxHeight: [0, 60], duration: 300, easing: 'easeOutExpo' });
+    });
+    cancelBtn.addEventListener('click', () => editInline.classList.remove('show'));
+    saveBtn.addEventListener('click', async () => {
+      const val = inputEl.tagName === 'SELECT' ? inputEl.value : (inputEl.type === 'number' ? parseFloat(inputEl.value) : inputEl.value);
+      profile[field] = val;
+
+      // Recalculate if body stat changed
+      const bodyFields = ['age','height_cm','weight_kg','target_weight_kg','activity_level','goal'];
+      if (bodyFields.includes(field)) {
+        const maint = calcTDEE(profile.weight_kg, profile.height_cm, profile.age, profile.activity_level);
+        const targets = calcTargets(maint, profile.goal);
+        profile.maintenance_calories = maint;
+        profile.daily_calorie_target = targets.daily_calorie_target;
+        profile.protein_target_g = targets.protein_target_g;
+        profile.carbs_target_g = targets.carbs_target_g;
+        profile.fats_target_g = targets.fats_target_g;
+      }
+
+      try {
+        const updateData = { [field]: val, updated_at: new Date().toISOString() };
+        if (['age','height_cm','weight_kg','target_weight_kg','activity_level','goal'].includes(field)) {
+          updateData.maintenance_calories = profile.maintenance_calories;
+          updateData.daily_calorie_target = profile.daily_calorie_target;
+          updateData.protein_target_g = profile.protein_target_g;
+          updateData.carbs_target_g = profile.carbs_target_g;
+          updateData.fats_target_g = profile.fats_target_g;
+        }
+        await databases.updateDocument(DATABASE_ID, COL_USERS_PROFILE, profileDocId, updateData);
+        cacheSet('fitup_profile', profile);
+        renderStats();
+        editInline.classList.remove('show');
+        showToast('Updated!');
+      } catch (e) { showToast('Update failed', 'error'); }
+    });
+  });
+
+  // Row entrance animation
+  anime({ targets: '.stat-row', translateX: [-20, 0], opacity: [0, 1], delay: anime.stagger(60), duration: 400, easing: 'easeOutExpo' });
+
+  // Weight log
+  let weightHistory = [];
+  try {
+    const wRes = await databases.listDocuments(DATABASE_ID, COL_WEIGHT_HISTORY, [
+      Query.equal('user_id', userId), Query.orderDesc('logged_at'), Query.limit(7)
+    ]);
+    weightHistory = wRes.documents.reverse();
+  } catch (_) {}
+
+  function drawSparkline(data) {
+    const svg = document.getElementById('sparklineSvg');
+    svg.innerHTML = '';
+    if (data.length < 2) { document.getElementById('sparklineLabel').textContent = 'Log at least 2 weights to see chart'; return; }
+    const vals = data.map(d => d.weight_kg);
+    const min = Math.min(...vals) - 1;
+    const max = Math.max(...vals) + 1;
+    const range = max - min || 1;
+    const pts = vals.map((v, i) => ({ x: 20 + (i / (vals.length - 1)) * 260, y: 70 - ((v - min) / range) * 60 }));
+    const pathD = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p.x + ',' + p.y).join(' ');
+
+    // Area
+    const area = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    area.setAttribute('d', pathD + ` L${pts[pts.length-1].x},75 L${pts[0].x},75 Z`);
+    area.setAttribute('fill', 'url(#sparkGrad)');
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    const grad = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+    grad.id = 'sparkGrad'; grad.setAttribute('x1','0'); grad.setAttribute('y1','0'); grad.setAttribute('x2','0'); grad.setAttribute('y2','1');
+    const s1 = document.createElementNS('http://www.w3.org/2000/svg','stop'); s1.setAttribute('offset','0%'); s1.setAttribute('stop-color','#7c5cfc'); s1.setAttribute('stop-opacity','0.15');
+    const s2 = document.createElementNS('http://www.w3.org/2000/svg','stop'); s2.setAttribute('offset','100%'); s2.setAttribute('stop-color','#7c5cfc'); s2.setAttribute('stop-opacity','0');
+    grad.appendChild(s1); grad.appendChild(s2); defs.appendChild(grad); svg.appendChild(defs); svg.appendChild(area);
+
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    line.setAttribute('d', pathD);
+    line.setAttribute('fill', 'none');
+    line.setAttribute('stroke', '#7c5cfc');
+    line.setAttribute('stroke-width', '2');
+    line.setAttribute('stroke-linecap', 'round');
+    svg.appendChild(line);
+
+    pts.forEach(p => {
+      const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      c.setAttribute('cx', p.x); c.setAttribute('cy', p.y); c.setAttribute('r', '3'); c.setAttribute('fill', '#7c5cfc');
+      svg.appendChild(c);
+    });
+
+    // Animate
+    const totalLen = line.getTotalLength();
+    line.setAttribute('stroke-dasharray', totalLen);
+    line.setAttribute('stroke-dashoffset', totalLen);
+    anime({ targets: line, strokeDashoffset: [totalLen, 0], duration: 800, easing: 'easeInOutSine' });
+
+    const first = vals[0]; const last = vals[vals.length-1];
+    document.getElementById('sparklineLabel').textContent = `Start: ${first}kg → Now: ${last}kg`;
+  }
+  drawSparkline(weightHistory);
+
+  document.getElementById('weightSaveBtn').addEventListener('click', async () => {
+    const val = parseFloat(document.getElementById('weightInput').value);
+    if (!val || val < 1) { showToast('Enter a valid weight', 'error'); return; }
+    try {
+      await databases.createDocument(DATABASE_ID, COL_WEIGHT_HISTORY, ID.unique(), {
+        user_id: userId, weight_kg: val, logged_at: new Date().toISOString(), note: ''
+      }, userPermissions(userId));
+      await databases.updateDocument(DATABASE_ID, COL_USERS_PROFILE, profileDocId, { weight_kg: val, updated_at: new Date().toISOString() });
+      profile.weight_kg = val;
+      cacheSet('fitup_profile', profile);
+      renderStats();
+      document.getElementById('weightInput').value = '';
+      showToast('Weight logged!');
+      // Re-fetch sparkline
+      const wRes = await databases.listDocuments(DATABASE_ID, COL_WEIGHT_HISTORY, [
+        Query.equal('user_id', userId), Query.orderDesc('logged_at'), Query.limit(7)
+      ]);
+      drawSparkline(wRes.documents.reverse());
+    } catch (e) { showToast('Failed to log weight', 'error'); }
+  });
+
+  // Logout
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    anime({ targets: '#logoutBtn', scale: [1, 0.94, 1], duration: 200 });
+    try { await account.deleteSession('current'); cacheClear(); } catch(_){}
+    window.location.href = 'index.html';
+  });
+
+  // Delete account
+  document.getElementById('deleteAccBtn').addEventListener('click', () => {
+    document.getElementById('deleteConfirm').classList.add('show');
+  });
+  document.getElementById('confirmDeleteNo').addEventListener('click', () => {
+    document.getElementById('deleteConfirm').classList.remove('show');
+  });
+  document.getElementById('confirmDeleteYes').addEventListener('click', async () => {
+    try {
+      await account.deleteSession('current');
+      cacheClear();
+    } catch(_) {}
+    window.location.href = 'index.html';
+  });
+
+  // Card entrance
+  anime({ targets: '.card, .card-simple, .action-btn', translateY: [20, 0], opacity: [0, 1], delay: anime.stagger(80), duration: 500, easing: 'easeOutExpo' });
+})();
+</script>
+</body>
+</html>

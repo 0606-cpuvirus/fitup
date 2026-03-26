@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>FitUp — Food Library</title>
+<meta name="description" content="Browse and manage your food library.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+<style>
+:root{--bg:#0a0a0f;--surface:#12121a;--elevated:#1a1a26;--border:rgba(255,255,255,0.05);--accent:#7c5cfc;--green:#22d3a0;--amber:#f59e0b;--red:#f43f5e;--purple:#a855f7;--text:#f0f0ff;--muted:#6b6b8a}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;padding-bottom:100px}
+h1,h2,h3{font-family:'Space Grotesk',sans-serif}
+.page{max-width:430px;margin:0 auto;padding:16px}
+.page-title{font-size:1.3rem;font-weight:700;margin-bottom:14px}
+.search-bar{width:100%;padding:12px 16px;background:var(--elevated);border:1px solid var(--border);border-radius:14px;color:var(--text);font-size:.95rem;font-family:'DM Sans',sans-serif;outline:none;margin-bottom:14px;transition:border-color .2s}
+.search-bar:focus{border-color:var(--accent)}
+.filter-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:14px;scrollbar-width:none;-ms-overflow-style:none;position:relative}
+.filter-tabs::-webkit-scrollbar{display:none}
+.filter-tab{white-space:nowrap;padding:8px 16px;border-radius:12px;background:var(--elevated);border:1px solid var(--border);color:var(--muted);font-size:.82rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;flex-shrink:0}
+.filter-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.food-card{display:flex;align-items:flex-start;gap:12px;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:16px;margin-bottom:10px;cursor:pointer;transition:transform .2s,box-shadow .2s;opacity:0}
+.food-card:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(124,92,252,.12)}
+.food-card-icon{flex-shrink:0}
+.food-card-info{flex:1;min-width:0}
+.food-card-name{font-weight:600;font-size:.95rem;margin-bottom:2px}
+.food-card-macros{color:var(--muted);font-size:.78rem}
+.food-card-serving{color:var(--muted);font-size:.72rem;margin-top:2px}
+.food-card-actions{display:flex;gap:8px;flex-shrink:0;align-items:center}
+.icon-btn{background:none;border:none;cursor:pointer;font-size:1rem;padding:4px;color:var(--muted);transition:color .2s}
+.icon-btn:hover{color:var(--text)}
+.icon-btn.delete:hover{color:var(--red)}
+.expand-detail{display:none;padding:10px 0 0;border-top:1px solid var(--border);margin-top:10px;font-size:.82rem;color:var(--muted)}
+.expand-detail.show{display:block}
+.confirm-chip{display:none;background:rgba(244,63,94,.12);padding:8px 14px;border-radius:10px;font-size:.82rem;align-items:center;gap:8px;margin-top:8px}
+.confirm-chip.show{display:flex}
+.confirm-chip button{padding:4px 12px;border-radius:8px;font-size:.78rem;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;border:none}
+.confirm-yes{background:var(--red);color:#fff}
+.confirm-no{background:var(--elevated);color:var(--text)}
+.fab{position:fixed;bottom:88px;right:50%;transform:translateX(calc(215px - 28px));width:56px;height:56px;border-radius:50%;background:var(--accent);color:#fff;border:none;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 20px rgba(124,92,252,.4);display:flex;align-items:center;justify-content:center;z-index:50;transition:transform .2s}
+.fab:hover{transform:translateX(calc(215px - 28px)) rotate(45deg)}
+.empty-state{text-align:center;color:var(--muted);padding:40px 0}
+.shimmer{border-radius:16px;background:linear-gradient(90deg,var(--elevated) 25%,var(--surface) 50%,var(--elevated) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;height:80px;margin-bottom:10px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-60px);padding:10px 24px;border-radius:30px;font-size:.88rem;font-weight:600;z-index:999;opacity:0;pointer-events:none}
+.toast.success{background:var(--accent);color:#fff}
+.toast.error{background:var(--red);color:#fff}
+.toast.info{background:var(--muted);color:#fff}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:var(--surface);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:8px 0 12px;z-index:100}
+.nav-tab{display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;color:var(--muted);font-size:.68rem;cursor:pointer;padding:4px 8px;position:relative;font-family:'DM Sans',sans-serif}
+.nav-tab .icon{font-size:1.3rem}
+.nav-tab.active .icon{transform:scale(1.2)}
+.nav-tab.active{color:var(--accent)}
+.nav-underline{position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);width:20px;height:3px;background:var(--accent);border-radius:2px;display:none}
+.nav-tab.active .nav-underline{display:block}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div class="page">
+  <h1 class="page-title">Food Library</h1>
+  <input type="text" class="search-bar" id="searchInput" placeholder="Search foods…">
+  <div class="filter-tabs" id="filterTabs">
+    <button class="filter-tab active" data-filter="all">All</button>
+    <button class="filter-tab" data-filter="preset">Presets</button>
+    <button class="filter-tab" data-filter="mine">Mine</button>
+    <button class="filter-tab" data-filter="breakfast">Breakfast</button>
+    <button class="filter-tab" data-filter="lunch">Lunch</button>
+    <button class="filter-tab" data-filter="dinner">Dinner</button>
+    <button class="filter-tab" data-filter="snack">Snack</button>
+    <button class="filter-tab" data-filter="drink">Drink</button>
+  </div>
+  <div id="shimmerWrap"><div class="shimmer"></div><div class="shimmer"></div><div class="shimmer"></div></div>
+  <div id="foodList"></div>
+</div>
+<button class="fab" id="fabBtn" onclick="location.href='5_add_food.html'">+</button>
+<nav class="bottom-nav">
+  <button class="nav-tab" onclick="location.href='2_dashboard.html'"><span class="icon">🏠</span>Home<div class="nav-underline"></div></button>
+  <button class="nav-tab" onclick="location.href='3_daily_log.html'"><span class="icon">📋</span>Log<div class="nav-underline"></div></button>
+  <button class="nav-tab active" onclick="location.href='4_food_library.html'"><span class="icon">🥗</span>Library<div class="nav-underline"></div></button>
+  <button class="nav-tab" onclick="location.href='7_history.html'"><span class="icon">📈</span>History<div class="nav-underline"></div></button>
+  <button class="nav-tab" onclick="location.href='6_profile.html'"><span class="icon">👤</span>Profile<div class="nav-underline"></div></button>
+</nav>
+
+<script type="module">
+import { getCurrentUser, databases, Query, DATABASE_ID, COL_FOOD_ITEMS, renderFoodIcon } from './appwrite.js';
+
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast ' + type;
+  anime({ targets: t, translateY: [-60, 0], opacity: [0,1], duration: 400, easing:'easeOutExpo' });
+  setTimeout(() => anime({ targets: t, opacity: 0, translateY: -30, duration: 300 }), 3000);
+}
+
+let allFoods = [];
+let activeFilter = 'all';
+let searchQuery = '';
+
+(async () => {
+  const user = await getCurrentUser();
+  if (!user) return;
+  try {
+    const res = await databases.listDocuments(DATABASE_ID, COL_FOOD_ITEMS, [
+      Query.equal('user_id', user.$id), Query.limit(200)
+    ]);
+    allFoods = res.documents;
+  } catch (e) { showToast('Failed to load foods', 'error'); }
+  document.getElementById('shimmerWrap').style.display = 'none';
+  renderList();
+})();
+
+function getFiltered() {
+  return allFoods.filter(f => {
+    if (searchQuery && !f.name.toLowerCase().includes(searchQuery)) return false;
+    if (activeFilter === 'all') return true;
+    if (activeFilter === 'preset') return f.is_preset === true;
+    if (activeFilter === 'mine') return !f.is_preset;
+    return f.category === activeFilter;
+  });
+}
+
+function renderList() {
+  const list = document.getElementById('foodList');
+  list.innerHTML = '';
+  const foods = getFiltered();
+  if (!foods.length) { list.innerHTML = '<div class="empty-state">No foods found</div>'; return; }
+  foods.forEach(f => {
+    const card = document.createElement('div');
+    card.className = 'food-card';
+    card.id = 'card-' + f.$id;
+
+    const iconWrap = document.createElement('div');
+    iconWrap.className = 'food-card-icon';
+    iconWrap.appendChild(renderFoodIcon(f.icon_type, f.icon_key, 48));
+
+    const info = document.createElement('div');
+    info.className = 'food-card-info';
+    info.innerHTML = `<div class="food-card-name">${f.name}</div>
+      <div class="food-card-macros">${f.calories} kcal | P:${f.protein_g}g C:${f.carbs_g}g F:${f.fats_g}g</div>
+      <div class="food-card-serving">per ${f.serving_size} ${f.serving_unit}</div>
+      <div class="expand-detail" id="detail-${f.$id}">
+        ${f.fiber_g ? 'Fiber: '+f.fiber_g+'g | ' : ''}${f.sugar_g ? 'Sugar: '+f.sugar_g+'g | ' : ''}${f.sodium_mg ? 'Sodium: '+f.sodium_mg+'mg' : ''}
+        ${!f.fiber_g && !f.sugar_g && !f.sodium_mg ? 'No additional details' : ''}
+      </div>
+      <div class="confirm-chip" id="confirm-${f.$id}">
+        <span>Delete this food?</span>
+        <button class="confirm-yes" data-id="${f.$id}">Delete</button>
+        <button class="confirm-no" data-id="${f.$id}">Cancel</button>
+      </div>`;
+
+    const actions = document.createElement('div');
+    actions.className = 'food-card-actions';
+    actions.innerHTML = `<button class="icon-btn edit" data-id="${f.$id}" title="Edit">✏️</button>
+      <button class="icon-btn delete" data-id="${f.$id}" title="Delete">🗑️</button>`;
+
+    card.appendChild(iconWrap); card.appendChild(info); card.appendChild(actions);
+
+    // Expand on card tap
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.icon-btn') || e.target.closest('.confirm-chip')) return;
+      const detail = document.getElementById('detail-' + f.$id);
+      detail.classList.toggle('show');
+      if (detail.classList.contains('show')) {
+        anime({ targets: detail, opacity: [0,1], maxHeight: [0, 60], duration: 300, easing: 'easeOutExpo' });
+      }
+    });
+
+    list.appendChild(card);
+  });
+
+  // Wire actions
+  list.querySelectorAll('.icon-btn.edit').forEach(b => {
+    b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      location.href = '5_add_food.html?id=' + b.dataset.id;
+    });
+  });
+  list.querySelectorAll('.icon-btn.delete').forEach(b => {
+    b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.getElementById('confirm-' + b.dataset.id).classList.add('show');
+    });
+  });
+  list.querySelectorAll('.confirm-yes').forEach(b => {
+    b.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      try {
+        await databases.deleteDocument(DATABASE_ID, COL_FOOD_ITEMS, b.dataset.id);
+        const card = document.getElementById('card-' + b.dataset.id);
+        anime({ targets: card, translateX: 30, opacity: 0, scaleY: 0, duration: 300, easing: 'easeInExpo',
+          complete: () => { card.remove(); allFoods = allFoods.filter(f => f.$id !== b.dataset.id); }
+        });
+        showToast('Food deleted');
+      } catch (e) { showToast('Delete failed', 'error'); }
+    });
+  });
+  list.querySelectorAll('.confirm-no').forEach(b => {
+    b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.getElementById('confirm-' + b.dataset.id).classList.remove('show');
+    });
+  });
+
+  anime({ targets: '.food-card', translateY: [20, 0], opacity: [0, 1], delay: anime.stagger(60), duration: 500, easing: 'easeOutExpo' });
+}
+
+// Filter tabs
+document.querySelectorAll('.filter-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    activeFilter = tab.dataset.filter;
+    renderList();
+  });
+});
+
+// Search
+let searchTimer;
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => { searchQuery = e.target.value.toLowerCase().trim(); renderList(); }, 300);
+});
+
+// FAB bounce
+const fab = document.getElementById('fabBtn');
+fab.addEventListener('click', () => anime({ targets: fab, scale: [1, 0.9, 1], duration: 200 }));
+</script>
+</body>
+</html>

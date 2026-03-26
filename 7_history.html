@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>FitUp — History</title>
+<meta name="description" content="View your nutrition history and weight progress.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+<style>
+:root{--bg:#0a0a0f;--surface:#12121a;--elevated:#1a1a26;--border:rgba(255,255,255,0.05);--accent:#7c5cfc;--green:#22d3a0;--amber:#f59e0b;--red:#f43f5e;--purple:#a855f7;--text:#f0f0ff;--muted:#6b6b8a}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;padding-bottom:100px}
+h1,h2,h3{font-family:'Space Grotesk',sans-serif}
+.page{max-width:430px;margin:0 auto;padding:16px}
+.page-title{font-size:1.3rem;font-weight:700;margin-bottom:14px}
+.card{background:linear-gradient(var(--surface),var(--surface)) padding-box,linear-gradient(135deg,rgba(124,92,252,.3),transparent) border-box;border:1px solid transparent;border-radius:16px;padding:20px;margin-bottom:14px;box-shadow:0 4px 24px rgba(124,92,252,.07)}
+.card-simple{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:14px}
+/* Month selector */
+.month-sel{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.month-sel button{background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;padding:6px 10px}
+.month-sel button:hover{color:var(--accent)}
+.month-label{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1rem}
+/* Calendar */
+.cal-header{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;margin-bottom:6px}
+.cal-header span{font-size:.72rem;color:var(--muted);font-weight:600;padding:4px 0}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.day-cell{aspect-ratio:1;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.82rem;font-weight:600;cursor:pointer;position:relative;background:var(--elevated);transition:background .2s;opacity:0}
+.day-cell.empty{background:transparent;cursor:default}
+.day-cell .dot{width:6px;height:6px;border-radius:50%;margin-top:2px}
+.day-cell.status-none .dot{background:var(--muted);opacity:.3}
+.day-cell.status-under .dot{background:var(--green)}
+.day-cell.status-near .dot{background:var(--amber)}
+.day-cell.status-over .dot{background:var(--red)}
+.day-cell.status-cheat .dot{background:var(--purple)}
+.day-cell.status-under{box-shadow:0 0 8px rgba(34,211,160,.2)}
+.day-cell.status-near{box-shadow:0 0 8px rgba(245,158,11,.2)}
+.day-cell.status-over{box-shadow:0 0 8px rgba(244,63,94,.2)}
+.day-cell.status-cheat{box-shadow:0 0 8px rgba(168,85,247,.3)}
+.day-cell .cheat-emoji{font-size:.6rem;position:absolute;top:2px;right:3px}
+/* Day detail sheet */
+.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none}
+.backdrop.show{display:block}
+.day-sheet{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(100%);width:100%;max-width:430px;max-height:70vh;background:var(--surface);border-radius:20px 20px 0 0;z-index:201;overflow-y:auto;padding:20px}
+.sheet-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.sheet-title{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.05rem}
+.sheet-close{background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer}
+.sheet-stats{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.sheet-stat{padding:6px 12px;background:var(--elevated);border-radius:10px;font-size:.82rem;font-weight:600}
+.sheet-cheat{display:inline-block;padding:4px 12px;background:var(--purple);border-radius:20px;font-size:.78rem;font-weight:600;margin-bottom:10px}
+.sheet-macro-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.sheet-macro-label{font-size:.78rem;color:var(--muted);min-width:52px}
+.sheet-macro-bar{flex:1;height:6px;background:var(--elevated);border-radius:4px;overflow:hidden}
+.sheet-macro-fill{height:100%;border-radius:4px}
+.sheet-macro-val{font-size:.75rem;color:var(--muted);min-width:50px;text-align:right}
+.sheet-mood{font-size:1.2rem;margin-bottom:8px}
+.sheet-section{font-size:.82rem;font-weight:600;color:var(--muted);margin:12px 0 6px;text-transform:uppercase;letter-spacing:1px}
+.sheet-meal-item{padding:6px 0;border-bottom:1px solid var(--border);font-size:.85rem;display:flex;justify-content:space-between}
+.sheet-meal-item:last-child{border-bottom:none}
+.sheet-note{font-style:italic;color:var(--muted);font-size:.85rem;margin-top:8px}
+/* Weight chart */
+.weight-chart-label{color:var(--muted);font-size:.82rem;text-align:center;margin-top:6px}
+/* Shimmer */
+.shimmer{border-radius:14px;background:linear-gradient(90deg,var(--elevated) 25%,var(--surface) 50%,var(--elevated) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;height:200px;margin-bottom:14px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-60px);padding:10px 24px;border-radius:30px;font-size:.88rem;font-weight:600;z-index:999;opacity:0;pointer-events:none}
+.toast.success{background:var(--accent);color:#fff}
+.toast.error{background:var(--red);color:#fff}
+.toast.info{background:var(--muted);color:#fff}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:var(--surface);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:8px 0 12px;z-index:100}
+.nav-tab{display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;color:var(--muted);font-size:.68rem;cursor:pointer;padding:4px 8px;position:relative;font-family:'DM Sans',sans-serif}
+.nav-tab .icon{font-size:1.3rem}
+.nav-tab.active .icon{transform:scale(1.2)}
+.nav-tab.active{color:var(--accent)}
+.nav-underline{position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);width:20px;height:3px;background:var(--accent);border-radius:2px;display:none}
+.nav-tab.active .nav-underline{display:block}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div class="backdrop" id="backdrop"></div>
+<div class="day-sheet" id="daySheet">
+  <div class="sheet-header">
+    <span class="sheet-title" id="sheetTitle"></span>
+    <button class="sheet-close" id="sheetClose">✕</button>
+  </div>
+  <div id="sheetBody"></div>
+</div>
+
+<div class="page">
+  <h1 class="page-title">History</h1>
+
+  <div class="month-sel">
+    <button id="prevMonth">← </button>
+    <span class="month-label" id="monthLabel"></span>
+    <button id="nextMonth"> →</button>
+  </div>
+
+  <div class="card" id="calCard">
+    <div id="shimmerCal"><div class="shimmer" style="height:260px"></div></div>
+    <div id="calendarWrap" style="display:none">
+      <div class="cal-header"><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span></div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+  </div>
+
+  <div class="card" id="weightChartCard">
+    <h3 style="font-size:1rem;margin-bottom:10px">Weight Progress</h3>
+    <div id="shimmerWeight"><div class="shimmer" style="height:130px"></div></div>
+    <div id="weightChartWrap" style="display:none">
+      <svg id="weightSvg" viewBox="0 0 340 120" width="100%" height="120"></svg>
+      <div class="weight-chart-label" id="weightChartLabel"></div>
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <button class="nav-tab" onclick="location.href='2_dashboard.html'"><span class="icon">🏠</span>Home<div class="nav-underline"></div></button>
+  <button class="nav-tab" onclick="location.href='3_daily_log.html'"><span class="icon">📋</span>Log<div class="nav-underline"></div></button>
+  <button class="nav-tab" onclick="location.href='4_food_library.html'"><span class="icon">🥗</span>Library<div class="nav-underline"></div></button>
+  <button class="nav-tab active" onclick="location.href='7_history.html'"><span class="icon">📈</span>History<div class="nav-underline"></div></button>
+  <button class="nav-tab" onclick="location.href='6_profile.html'"><span class="icon">👤</span>Profile<div class="nav-underline"></div></button>
+</nav>
+
+<script type="module">
+import { getCurrentUser, databases, Query,
+         DATABASE_ID, COL_USERS_PROFILE, COL_DAILY_LOGS, COL_MEAL_ENTRIES, COL_WEIGHT_HISTORY
+       } from './appwrite.js';
+
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast ' + type;
+  anime({ targets: t, translateY: [-60, 0], opacity: [0,1], duration: 400, easing:'easeOutExpo' });
+  setTimeout(() => anime({ targets: t, opacity: 0, translateY: -30, duration: 300 }), 3000);
+}
+
+let currentYear, currentMonth; // 0-indexed month
+let profile = null;
+let logsMap = {};
+let userId = null;
+
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+(async () => {
+  const user = await getCurrentUser();
+  if (!user) return;
+  userId = user.$id;
+
+  try {
+    const res = await databases.listDocuments(DATABASE_ID, COL_USERS_PROFILE, [Query.equal('user_id', userId), Query.limit(1)]);
+    if (res.documents.length) profile = res.documents[0];
+  } catch (_) {}
+
+  const now = new Date();
+  currentYear = now.getFullYear();
+  currentMonth = now.getMonth();
+
+  await loadMonth();
+  await loadWeightChart();
+})();
+
+document.getElementById('prevMonth').addEventListener('click', async () => {
+  currentMonth--;
+  if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+  await loadMonth();
+});
+document.getElementById('nextMonth').addEventListener('click', async () => {
+  currentMonth++;
+  if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+  await loadMonth();
+});
+
+async function loadMonth() {
+  document.getElementById('monthLabel').textContent = `${MONTHS[currentMonth]} ${currentYear}`;
+  const prefix = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+
+  logsMap = {};
+  try {
+    const res = await databases.listDocuments(DATABASE_ID, COL_DAILY_LOGS, [
+      Query.equal('user_id', userId), Query.limit(100)
+    ]);
+    // Filter client-side for the month
+    res.documents.forEach(d => {
+      if (d.log_date && d.log_date.startsWith(prefix)) {
+        logsMap[d.log_date] = d;
+      }
+    });
+  } catch (e) { showToast('Failed to load logs', 'error'); }
+
+  document.getElementById('shimmerCal').style.display = 'none';
+  document.getElementById('calendarWrap').style.display = 'block';
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+  const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const target = profile ? profile.daily_calorie_target : 2000;
+  const threshold = profile ? (profile.cheat_day_threshold || 2000) : 2000;
+
+  // Empty cells
+  for (let i = 0; i < firstDay; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'day-cell empty';
+    grid.appendChild(cell);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const log = logsMap[dateStr];
+    const cell = document.createElement('div');
+    cell.className = 'day-cell';
+
+    let statusClass = 'status-none';
+    let cheatEmoji = '';
+    if (log) {
+      const tc = log.total_calories || 0;
+      if (log.is_cheat_day || tc > threshold) {
+        statusClass = 'status-cheat';
+        cheatEmoji = '🍕';
+      } else if (tc > target * 1.1) {
+        statusClass = 'status-over';
+      } else if (tc > target * 0.9) {
+        statusClass = 'status-near';
+      } else if (tc > 0) {
+        statusClass = 'status-under';
+      }
+    }
+    cell.classList.add(statusClass);
+    cell.innerHTML = `<span>${d}</span><div class="dot"></div>${cheatEmoji ? `<span class="cheat-emoji">${cheatEmoji}</span>` : ''}`;
+    cell.addEventListener('click', () => openDayDetail(dateStr, log));
+    grid.appendChild(cell);
+  }
+
+  anime({ targets: '.day-cell:not(.empty)', scale: [0, 1], opacity: [0, 1], delay: anime.stagger(15), easing: 'spring(1,80,10,0)' });
+}
+
+// Day detail
+const backdrop = document.getElementById('backdrop');
+const sheet = document.getElementById('daySheet');
+const sheetClose = document.getElementById('sheetClose');
+
+function closeSheet() {
+  anime({ targets: sheet, translateY: '100%', duration: 300, easing: 'easeInExpo' });
+  backdrop.classList.remove('show');
+}
+sheetClose.addEventListener('click', closeSheet);
+backdrop.addEventListener('click', closeSheet);
+
+async function openDayDetail(dateStr, log) {
+  const d = new Date(dateStr + 'T00:00:00');
+  document.getElementById('sheetTitle').textContent = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  const body = document.getElementById('sheetBody');
+
+  if (!log) {
+    body.innerHTML = '<p style="color:var(--muted);text-align:center;padding:20px">No data for this day</p>';
+  } else {
+    const remain = log.calories_remaining || 0;
+    const deficit = log.calorie_deficit || 0;
+    let html = `<div class="sheet-stats">
+      <div class="sheet-stat">${Math.round(log.total_calories || 0)} kcal</div>
+      <div class="sheet-stat">Remain: ${Math.round(remain)}</div>
+      <div class="sheet-stat">Deficit: ${Math.round(deficit)}</div>
+    </div>`;
+
+    if (log.is_cheat_day) html += `<div class="sheet-cheat">🍕 Cheat Day</div>`;
+
+    const target = profile ? profile.daily_calorie_target : 2000;
+    const pTarget = profile ? profile.protein_target_g : 100;
+    const cTarget = profile ? profile.carbs_target_g : 200;
+    const fTarget = profile ? profile.fats_target_g : 60;
+
+    const macros = [
+      { label: 'Protein', val: log.total_protein_g || 0, target: pTarget, color: 'var(--accent)' },
+      { label: 'Carbs', val: log.total_carbs_g || 0, target: cTarget, color: 'var(--green)' },
+      { label: 'Fats', val: log.total_fats_g || 0, target: fTarget, color: 'var(--amber)' },
+    ];
+    macros.forEach(m => {
+      const pct = m.target > 0 ? Math.min((m.val / m.target) * 100, 100) : 0;
+      html += `<div class="sheet-macro-row">
+        <span class="sheet-macro-label">${m.label}</span>
+        <div class="sheet-macro-bar"><div class="sheet-macro-fill" style="width:${pct}%;background:${m.color}"></div></div>
+        <span class="sheet-macro-val">${Math.round(m.val)}/${Math.round(m.target)}g</span>
+      </div>`;
+    });
+
+    const moodEmoji = { great: '😄', okay: '😐', bad: '😔' };
+    if (log.mood) html += `<div class="sheet-mood">${moodEmoji[log.mood] || ''} ${log.mood}</div>`;
+
+    // Fetch meal entries
+    html += `<div class="sheet-section">Meals</div><div id="sheetMeals"><div style="color:var(--muted);font-size:.82rem">Loading…</div></div>`;
+    if (log.note) html += `<div class="sheet-note">"${log.note}"</div>`;
+    body.innerHTML = html;
+
+    // Lazy load entries
+    try {
+      const entries = await databases.listDocuments(DATABASE_ID, COL_MEAL_ENTRIES, [
+        Query.equal('daily_log_id', log.$id), Query.limit(50)
+      ]);
+      const mealsDiv = document.getElementById('sheetMeals');
+      if (!entries.documents.length) {
+        mealsDiv.innerHTML = '<div style="color:var(--muted);font-size:.82rem">No entries</div>';
+      } else {
+        const slotMap = { breakfast: [], lunch: [], dinner: [], snack: [] };
+        entries.documents.forEach(e => { (slotMap[e.meal_slot] || slotMap.snack).push(e); });
+        let mealsHtml = '';
+        ['breakfast', 'lunch', 'dinner', 'snack'].forEach(s => {
+          if (slotMap[s].length) {
+            mealsHtml += `<div style="font-size:.82rem;font-weight:600;color:var(--muted);margin:8px 0 4px;text-transform:capitalize">${s}</div>`;
+            slotMap[s].forEach(e => {
+              mealsHtml += `<div class="sheet-meal-item"><span>${e.quantity}× (${Math.round(e.calories_consumed)} kcal)</span><span style="color:var(--muted)">P:${Math.round(e.protein_consumed_g)}g C:${Math.round(e.carbs_consumed_g)}g F:${Math.round(e.fats_consumed_g)}g</span></div>`;
+            });
+          }
+        });
+        mealsDiv.innerHTML = mealsHtml;
+      }
+    } catch (_) {
+      document.getElementById('sheetMeals').innerHTML = '<div style="color:var(--red);font-size:.82rem">Failed to load</div>';
+    }
+  }
+
+  backdrop.classList.add('show');
+  anime({ targets: sheet, translateY: ['100%', '0%'], duration: 500, easing: 'spring(1, 80, 10, 0)' });
+}
+
+// Weight chart
+async function loadWeightChart() {
+  let weightData = [];
+  try {
+    const res = await databases.listDocuments(DATABASE_ID, COL_WEIGHT_HISTORY, [
+      Query.equal('user_id', userId), Query.orderDesc('logged_at'), Query.limit(30)
+    ]);
+    weightData = res.documents.reverse();
+  } catch (_) {}
+
+  document.getElementById('shimmerWeight').style.display = 'none';
+  document.getElementById('weightChartWrap').style.display = 'block';
+
+  const svg = document.getElementById('weightSvg');
+  svg.innerHTML = '';
+
+  if (weightData.length < 2) {
+    document.getElementById('weightChartLabel').textContent = 'Log at least 2 weights to see chart';
+    return;
+  }
+
+  const vals = weightData.map(d => d.weight_kg);
+  const min = Math.min(...vals) - 1;
+  const max = Math.max(...vals) + 1;
+  const range = max - min || 1;
+  const pts = vals.map((v, i) => ({
+    x: 20 + (i / (vals.length - 1)) * 300,
+    y: 105 - ((v - min) / range) * 85
+  }));
+
+  // Defs
+  const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+  const grad = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+  grad.id = 'wGrad'; grad.setAttribute('x1','0'); grad.setAttribute('y1','0'); grad.setAttribute('x2','0'); grad.setAttribute('y2','1');
+  const s1 = document.createElementNS('http://www.w3.org/2000/svg','stop');
+  s1.setAttribute('offset','0%'); s1.setAttribute('stop-color','#22d3a0'); s1.setAttribute('stop-opacity','0.1');
+  const s2 = document.createElementNS('http://www.w3.org/2000/svg','stop');
+  s2.setAttribute('offset','100%'); s2.setAttribute('stop-color','#22d3a0'); s2.setAttribute('stop-opacity','0');
+  grad.appendChild(s1); grad.appendChild(s2); defs.appendChild(grad); svg.appendChild(defs);
+
+  // Grid lines
+  for (let i = 0; i < 4; i++) {
+    const y = 15 + i * 30;
+    const gl = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    gl.setAttribute('x1','10'); gl.setAttribute('x2','330'); gl.setAttribute('y1',y); gl.setAttribute('y2',y);
+    gl.setAttribute('stroke','rgba(255,255,255,0.05)'); gl.setAttribute('stroke-dasharray','4,4');
+    svg.appendChild(gl);
+  }
+
+  const pathD = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ');
+
+  // Area
+  const area = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  area.setAttribute('d', pathD + ` L${pts[pts.length-1].x.toFixed(1)},110 L${pts[0].x.toFixed(1)},110 Z`);
+  area.setAttribute('fill', 'url(#wGrad)');
+  svg.appendChild(area);
+
+  // Line
+  const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  line.setAttribute('d', pathD);
+  line.setAttribute('fill', 'none');
+  line.setAttribute('stroke', '#22d3a0');
+  line.setAttribute('stroke-width', '2');
+  line.setAttribute('stroke-linecap', 'round');
+  svg.appendChild(line);
+
+  // Dots
+  pts.forEach(p => {
+    const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    c.setAttribute('cx', p.x.toFixed(1)); c.setAttribute('cy', p.y.toFixed(1));
+    c.setAttribute('r', '3'); c.setAttribute('fill', '#22d3a0');
+    svg.appendChild(c);
+  });
+
+  // Animate
+  const totalLen = line.getTotalLength();
+  line.setAttribute('stroke-dasharray', totalLen);
+  line.setAttribute('stroke-dashoffset', totalLen);
+  anime({ targets: line, strokeDashoffset: [totalLen, 0], duration: 1000, easing: 'easeInOutSine' });
+
+  const first = vals[0];
+  const last = vals[vals.length - 1];
+  const diff = Math.round((first - last) * 10) / 10;
+  document.getElementById('weightChartLabel').textContent = `Start: ${first}kg → Now: ${last}kg | ${diff >= 0 ? 'Lost' : 'Gained'}: ${Math.abs(diff)}kg`;
+}
+</script>
+</body>
+</html>
