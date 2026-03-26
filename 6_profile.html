@@ -111,10 +111,20 @@ h1,h2,h3{font-family:'Space Grotesk',sans-serif}
 
     <div class="card-simple" id="calcCard">
       <div class="calc-row"><span class="calc-label">Maintenance Calories</span><span class="calc-value" id="calcMaint"></span></div>
-      <div class="calc-row"><span class="calc-label">Daily Target</span><span class="calc-value" id="calcTarget"></span></div>
-      <div class="calc-row"><span class="calc-label">Protein / Carbs / Fats</span><span class="calc-value" id="calcMacros"></span></div>
-      <div class="stat-row" data-field="cheat_day_threshold" style="border-bottom:none;padding-bottom:0"><span class="stat-label">Cheat Day Threshold</span><span class="stat-value" id="valCheat"></span><button class="stat-edit-btn">✏️</button>
+      <div class="stat-row" data-field="daily_calorie_target"><span class="stat-label">Daily Calorie Target</span><span class="stat-value" id="valCalTarget"></span><button class="stat-edit-btn">✏️</button>
         <div class="edit-inline"><input type="number" min="500" max="10000"><button class="save-sm">Save</button><button class="cancel-sm">Cancel</button></div>
+      </div>
+      <div class="stat-row" data-field="protein_target_g"><span class="stat-label">Protein Target (g)</span><span class="stat-value" id="valProtein"></span><button class="stat-edit-btn">✏️</button>
+        <div class="edit-inline"><input type="number" min="0" max="1000" step="0.1"><button class="save-sm">Save</button><button class="cancel-sm">Cancel</button></div>
+      </div>
+      <div class="stat-row" data-field="carbs_target_g"><span class="stat-label">Carbs Target (g)</span><span class="stat-value" id="valCarbs"></span><button class="stat-edit-btn">✏️</button>
+        <div class="edit-inline"><input type="number" min="0" max="2000" step="0.1"><button class="save-sm">Save</button><button class="cancel-sm">Cancel</button></div>
+      </div>
+      <div class="stat-row" data-field="fats_target_g"><span class="stat-label">Fats Target (g)</span><span class="stat-value" id="valFats"></span><button class="stat-edit-btn">✏️</button>
+        <div class="edit-inline"><input type="number" min="0" max="1000" step="0.1"><button class="save-sm">Save</button><button class="cancel-sm">Cancel</button></div>
+      </div>
+      <div class="stat-row" data-field="cheat_day_threshold" style="border-bottom:none;padding-bottom:0"><span class="stat-label">Cheat Day Threshold</span><span class="stat-value" id="valCheat"></span><button class="stat-edit-btn">✏️</button>
+        <div class="edit-inline"><input type="number" min="500" max="20000"><button class="save-sm">Save</button><button class="cancel-sm">Cancel</button></div>
       </div>
     </div>
 
@@ -147,7 +157,7 @@ h1,h2,h3{font-family:'Space Grotesk',sans-serif}
 </nav>
 
 <script type="module">
-import { getCurrentUser, account, databases, storage, ID, Query,
+import { getCurrentUser, account, databases, storage, ID, Query, Permission, Role,
          DATABASE_ID, COL_USERS_PROFILE, COL_WEIGHT_HISTORY, BUCKET_FOOD_PHOTOS,
          calcTDEE, calcTargets, cacheSet, cacheClear, userPermissions } from './appwrite.js';
 
@@ -183,8 +193,10 @@ let profileDocId = null;
   document.getElementById('avatarInput').addEventListener('change', async (e) => {
     if (!e.target.files[0]) return;
     try {
-      const file = await storage.createFile(BUCKET_FOOD_PHOTOS, ID.unique(), e.target.files[0]);
-      const url = storage.getFilePreview(BUCKET_FOOD_PHOTOS, file.$id);
+      const file = await storage.createFile(BUCKET_FOOD_PHOTOS, ID.unique(), e.target.files[0], [
+        Permission.read(Role.any())
+      ]);
+      const url = storage.getFilePreview(BUCKET_FOOD_PHOTOS, file.$id).toString();
       await databases.updateDocument(DATABASE_ID, COL_USERS_PROFILE, profileDocId, { avatar_url: url, updated_at: new Date().toISOString() });
       av.innerHTML = `<img src="${url}" alt="avatar">`;
       showToast('Avatar updated!');
@@ -203,8 +215,10 @@ let profileDocId = null;
     document.getElementById('valActivity').textContent = profile.activity_level.replace('_', ' ');
     document.getElementById('valGoal').textContent = profile.goal;
     document.getElementById('calcMaint').textContent = profile.maintenance_calories + ' kcal';
-    document.getElementById('calcTarget').textContent = profile.daily_calorie_target + ' kcal';
-    document.getElementById('calcMacros').textContent = `${Math.round(profile.protein_target_g)}g / ${Math.round(profile.carbs_target_g)}g / ${Math.round(profile.fats_target_g)}g`;
+    document.getElementById('valCalTarget').textContent = profile.daily_calorie_target + ' kcal';
+    document.getElementById('valProtein').textContent = Math.round(profile.protein_target_g) + 'g';
+    document.getElementById('valCarbs').textContent = Math.round(profile.carbs_target_g) + 'g';
+    document.getElementById('valFats').textContent = Math.round(profile.fats_target_g) + 'g';
     document.getElementById('valCheat').textContent = (profile.cheat_day_threshold || 2000) + ' kcal';
   }
   renderStats();

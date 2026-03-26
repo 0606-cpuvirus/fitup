@@ -25,12 +25,16 @@ h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif}
 .logout-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.2rem;padding:4px}
 .date-sub{color:var(--muted);font-size:.85rem;margin-bottom:18px}
 .ring-card{text-align:center;padding:24px 20px}
-.ring-label{font-size:2rem;font-weight:800;font-family:'Space Grotesk',sans-serif}
+.ring-wrap{position:relative;width:180px;height:180px;margin:0 auto}
+.ring-wrap svg{display:block}
+.ring-text-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none}
+.ring-label{font-size:2rem;font-weight:800;font-family:'Space Grotesk',sans-serif;line-height:1.1}
 .ring-sub{color:var(--muted);font-size:.85rem;margin-top:2px}
-.remaining{font-size:.92rem;margin-top:10px;font-weight:600}
+.ring-info{margin-top:16px}
+.remaining{font-size:.92rem;font-weight:600}
 .remaining.positive{color:var(--green)}
 .remaining.negative{color:var(--red)}
-.deficit{color:var(--muted);font-size:.82rem;margin-top:2px}
+.deficit{color:var(--muted);font-size:.82rem;margin-top:4px}
 #cheatBanner{display:none;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:14px;padding:14px 18px;text-align:center;font-weight:600;font-size:.92rem;margin-bottom:14px}
 .macro-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .macro-row:last-child{margin-bottom:0}
@@ -95,18 +99,22 @@ h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif}
   <div id="dashContent" style="display:none">
     <!-- Calorie Ring -->
     <div class="card ring-card" id="ringCard">
-      <svg width="180" height="180" viewBox="0 0 180 180" id="ringSvg">
-        <circle cx="90" cy="90" r="70" fill="none" stroke="var(--elevated)" stroke-width="14"/>
-        <circle cx="90" cy="90" r="70" fill="none" stroke="var(--accent)" stroke-width="14"
-                stroke-linecap="round" id="ringProgress"
-                transform="rotate(-90 90 90)"/>
-      </svg>
-      <div style="margin-top:-110px;margin-bottom:60px;position:relative">
-        <div class="ring-label" id="totalCal">0</div>
-        <div class="ring-sub" id="targetLabel">/ 0 kcal</div>
+      <div class="ring-wrap">
+        <svg width="180" height="180" viewBox="0 0 180 180" id="ringSvg">
+          <circle cx="90" cy="90" r="70" fill="none" stroke="var(--elevated)" stroke-width="14"/>
+          <circle cx="90" cy="90" r="70" fill="none" stroke="var(--accent)" stroke-width="14"
+                  stroke-linecap="round" id="ringProgress"
+                  transform="rotate(-90 90 90)"/>
+        </svg>
+        <div class="ring-text-overlay">
+          <div class="ring-label" id="totalCal">0</div>
+          <div class="ring-sub" id="targetLabel">/ 0 kcal</div>
+        </div>
       </div>
-      <div class="remaining" id="remainLabel">Remaining: 0 kcal</div>
-      <div class="deficit" id="deficitLabel">Deficit: 0 kcal</div>
+      <div class="ring-info">
+        <div class="remaining" id="remainLabel">Remaining: 0 kcal</div>
+        <div class="deficit" id="deficitLabel">Deficit: 0 kcal</div>
+      </div>
     </div>
 
     <!-- Cheat Day Banner -->

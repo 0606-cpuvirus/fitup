@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>FitUp — Add Meal Entry</title>
-<meta name="description" content="Add a meal entry to your daily log.">
+<meta name="description" content="Add meal entries to your daily log with batch selection.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
@@ -12,7 +12,7 @@
 <style>
 :root{--bg:#0a0a0f;--surface:#12121a;--elevated:#1a1a26;--border:rgba(255,255,255,0.05);--accent:#7c5cfc;--green:#22d3a0;--amber:#f59e0b;--red:#f43f5e;--purple:#a855f7;--text:#f0f0ff;--muted:#6b6b8a}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;padding-bottom:80px}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;padding-bottom:140px}
 h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif}
 .page{max-width:430px;margin:0 auto;padding:16px}
 .header{display:flex;align-items:center;gap:12px;margin-bottom:18px}
@@ -20,28 +20,32 @@ h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif}
 .header h1{font-size:1.2rem;font-weight:700}
 .search-bar{width:100%;padding:12px 16px;background:var(--elevated);border:1px solid var(--border);border-radius:14px;color:var(--text);font-size:.95rem;font-family:'DM Sans',sans-serif;outline:none;margin-bottom:16px;transition:border-color .2s}
 .search-bar:focus{border-color:var(--accent)}
-.food-item{display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:10px;cursor:pointer;opacity:0;transition:background .2s}
+/* Food Item Row */
+.food-item{display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:10px;cursor:pointer;opacity:0;transition:all .2s}
 .food-item:hover{background:var(--elevated)}
+.food-item.selected{border-color:var(--accent);background:rgba(124,92,252,.08);box-shadow:0 0 12px rgba(124,92,252,.15)}
+.food-check{width:22px;height:22px;border-radius:7px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;font-size:.75rem;color:transparent}
+.food-item.selected .food-check{border-color:var(--accent);background:var(--accent);color:#fff}
 .food-info{flex:1;min-width:0}
 .food-name{font-weight:600;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .food-meta{color:var(--muted);font-size:.78rem;margin-top:2px}
-.food-add-btn{width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;border:none;font-size:1.2rem;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
-/* Quantity Selector */
-.qty-panel{display:none;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:10px;opacity:0}
-.qty-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-.qty-food-name{font-weight:700;font-size:1rem}
-.qty-serving{color:var(--muted);font-size:.82rem;margin-bottom:12px}
-.qty-controls{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:12px}
-.qty-btn{width:40px;height:40px;border-radius:12px;background:var(--elevated);border:1px solid var(--border);color:var(--text);font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif}
-.qty-val{font-size:1.5rem;font-weight:800;font-family:'Space Grotesk',sans-serif;min-width:50px;text-align:center}
-.qty-computed{text-align:center;color:var(--muted);font-size:.85rem;margin-bottom:14px}
-.qty-computed b{color:var(--text)}
-.note-input{width:100%;padding:10px 14px;background:var(--elevated);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:.88rem;font-family:'DM Sans',sans-serif;outline:none;margin-bottom:14px}
-.note-input:focus{border-color:var(--accent)}
-.qty-btns{display:flex;gap:10px}
-.btn-primary{flex:1;padding:12px;border:none;border-radius:14px;background:var(--accent);color:#fff;font-size:.95rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:filter .2s}
-.btn-primary:hover{filter:brightness(1.15)}
-.btn-ghost{flex:1;padding:12px;border:1px solid var(--border);border-radius:14px;background:transparent;color:var(--muted);font-size:.95rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
+/* Inline Quantity Stepper (visible when selected) */
+.qty-inline{display:none;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.food-item.selected .qty-inline{display:flex}
+.qty-inline-btn{width:32px;height:32px;border-radius:10px;background:var(--elevated);border:1px solid var(--border);color:var(--text);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif}
+.qty-inline-val{font-size:1.1rem;font-weight:800;font-family:'Space Grotesk',sans-serif;min-width:36px;text-align:center}
+.qty-inline-summary{flex:1;text-align:right;font-size:.78rem;color:var(--muted)}
+.qty-inline-summary b{color:var(--text)}
+/* Batch Tray */
+.batch-tray{position:fixed;bottom:64px;left:50%;transform:translateX(-50%) translateY(100px);width:100%;max-width:430px;background:linear-gradient(var(--surface),var(--surface)) padding-box,linear-gradient(135deg,rgba(124,92,252,.4),rgba(34,211,160,.3)) border-box;border:1px solid transparent;border-radius:20px 20px 0 0;padding:16px 20px;z-index:90;display:flex;align-items:center;gap:12px;box-shadow:0 -4px 30px rgba(0,0,0,.4);opacity:0}
+.batch-tray.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.batch-info{flex:1}
+.batch-count{font-weight:700;font-size:.95rem;font-family:'Space Grotesk',sans-serif}
+.batch-total{color:var(--muted);font-size:.78rem;margin-top:2px}
+.batch-btn{padding:12px 24px;border:none;border-radius:14px;background:var(--accent);color:#fff;font-size:.95rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:filter .2s;white-space:nowrap}
+.batch-btn:hover{filter:brightness(1.15)}
+.batch-btn:disabled{opacity:.6;cursor:not-allowed}
+/* Misc */
 .shimmer{border-radius:14px;background:linear-gradient(90deg,var(--elevated) 25%,var(--surface) 50%,var(--elevated) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;height:60px;margin-bottom:10px}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-60px);padding:10px 24px;border-radius:30px;font-size:.88rem;font-weight:600;z-index:999;opacity:0;pointer-events:none;font-family:'DM Sans',sans-serif}
@@ -71,24 +75,15 @@ h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif}
     <div class="shimmer"></div><div class="shimmer"></div><div class="shimmer"></div>
   </div>
   <div id="foodList"></div>
-  <div id="qtyPanel" class="qty-panel">
-    <div class="qty-header">
-      <div id="qtyIcon"></div>
-      <span class="qty-food-name" id="qtyFoodName"></span>
-    </div>
-    <div class="qty-serving" id="qtyServing"></div>
-    <div class="qty-controls">
-      <button class="qty-btn" id="qtyDec">−</button>
-      <div class="qty-val" id="qtyVal">1</div>
-      <button class="qty-btn" id="qtyInc">+</button>
-    </div>
-    <div class="qty-computed" id="qtyComputed"></div>
-    <input type="text" class="note-input" id="noteInput" placeholder="Add a note… (optional)">
-    <div class="qty-btns">
-      <button class="btn-ghost" id="qtyCancel">Cancel</button>
-      <button class="btn-primary" id="qtyAdd">Add Entry</button>
-    </div>
+</div>
+
+<!-- Batch Tray -->
+<div class="batch-tray" id="batchTray">
+  <div class="batch-info">
+    <div class="batch-count" id="batchCount">0 items selected</div>
+    <div class="batch-total" id="batchTotal">0 kcal | P:0g C:0g F:0g</div>
   </div>
+  <button class="batch-btn" id="batchBtn">Add All</button>
 </div>
 
 <nav class="bottom-nav">
@@ -116,9 +111,9 @@ const slot = params.get('slot') || 'breakfast';
 document.getElementById('pageTitle').textContent = `Add to ${slot.charAt(0).toUpperCase()+slot.slice(1)}`;
 
 let allFoods = [];
-let selectedFood = null;
-let quantity = 1;
 let dailyLog = null;
+// Selection map: { foodId: { food, quantity } }
+let selected = {};
 
 (async () => {
   const user = await getCurrentUser();
@@ -161,21 +156,129 @@ function renderFoods(foods) {
   if (!foods.length) { list.innerHTML = '<div class="empty-state">No foods found. Add some in the Food Library!</div>'; return; }
   foods.forEach((f, i) => {
     const row = document.createElement('div');
-    row.className = 'food-item';
+    row.className = 'food-item' + (selected[f.$id] ? ' selected' : '');
     row.id = 'food-' + f.$id;
+
+    const check = document.createElement('div');
+    check.className = 'food-check';
+    check.textContent = '✓';
+
     const iconEl = renderFoodIcon(f.icon_type, f.icon_key, 40);
+
     const info = document.createElement('div');
     info.className = 'food-info';
-    info.innerHTML = `<div class="food-name">${f.name}</div><div class="food-meta">${f.calories} kcal / ${f.serving_size} ${f.serving_unit}</div>`;
-    const addBtn = document.createElement('button');
-    addBtn.className = 'food-add-btn';
-    addBtn.textContent = '+';
-    addBtn.addEventListener('click', (e) => { e.stopPropagation(); openQty(f); });
-    row.appendChild(iconEl); row.appendChild(info); row.appendChild(addBtn);
-    row.addEventListener('click', () => openQty(f));
+
+    const qty = selected[f.$id] ? selected[f.$id].quantity : 1;
+    const cal = Math.round(f.calories * qty);
+    const p = Math.round(f.protein_g * qty * 10) / 10;
+    const c = Math.round(f.carbs_g * qty * 10) / 10;
+    const fat = Math.round(f.fats_g * qty * 10) / 10;
+
+    info.innerHTML = `<div class="food-name">${f.name}</div>
+      <div class="food-meta">${f.calories} kcal / ${f.serving_size} ${f.serving_unit}</div>
+      <div class="qty-inline">
+        <button class="qty-inline-btn qty-dec" data-id="${f.$id}">−</button>
+        <div class="qty-inline-val" id="qtyVal-${f.$id}">${qty}</div>
+        <button class="qty-inline-btn qty-inc" data-id="${f.$id}">+</button>
+        <div class="qty-inline-summary" id="qtySummary-${f.$id}"><b>${cal} kcal</b> | P:${p}g C:${c}g F:${fat}g</div>
+      </div>`;
+
+    row.appendChild(check);
+    row.appendChild(iconEl);
+    row.appendChild(info);
+
+    // Toggle selection on row click
+    row.addEventListener('click', (e) => {
+      if (e.target.closest('.qty-inline-btn')) return; // don't toggle when clicking +/-
+      toggleSelect(f, row);
+    });
+
     list.appendChild(row);
   });
-  anime({ targets: '.food-item', translateY: [10, 0], opacity: [0, 1], delay: anime.stagger(50), duration: 400, easing: 'easeOutExpo' });
+
+  // Wire quantity buttons
+  list.querySelectorAll('.qty-inc').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      changeQty(btn.dataset.id, 0.5);
+    });
+  });
+  list.querySelectorAll('.qty-dec').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      changeQty(btn.dataset.id, -0.5);
+    });
+  });
+
+  anime({ targets: '.food-item', translateY: [10, 0], opacity: [0, 1], delay: anime.stagger(40), duration: 400, easing: 'easeOutExpo' });
+}
+
+function toggleSelect(food, row) {
+  if (selected[food.$id]) {
+    delete selected[food.$id];
+    row.classList.remove('selected');
+    anime({ targets: row, borderColor: 'rgba(255,255,255,0.05)', duration: 200 });
+  } else {
+    selected[food.$id] = { food, quantity: 1 };
+    row.classList.add('selected');
+    anime({ targets: row.querySelector('.food-check'), scale: [0, 1.3, 1], duration: 400, easing: 'easeOutElastic(1,.6)' });
+  }
+  updateQtyDisplay(food.$id);
+  updateBatchTray();
+}
+
+function changeQty(foodId, delta) {
+  if (!selected[foodId]) return;
+  let q = selected[foodId].quantity + delta;
+  q = Math.max(0.5, Math.round(q * 10) / 10);
+  selected[foodId].quantity = q;
+  updateQtyDisplay(foodId);
+  updateBatchTray();
+  const el = document.getElementById('qtyVal-' + foodId);
+  if (el) anime({ targets: el, translateY: [delta > 0 ? -8 : 8, 0], duration: 200, easing: 'easeOutExpo' });
+}
+
+function updateQtyDisplay(foodId) {
+  if (!selected[foodId]) return;
+  const { food, quantity } = selected[foodId];
+  const valEl = document.getElementById('qtyVal-' + foodId);
+  const sumEl = document.getElementById('qtySummary-' + foodId);
+  if (valEl) valEl.textContent = quantity;
+  if (sumEl) {
+    const cal = Math.round(food.calories * quantity);
+    const p = Math.round(food.protein_g * quantity * 10) / 10;
+    const c = Math.round(food.carbs_g * quantity * 10) / 10;
+    const f = Math.round(food.fats_g * quantity * 10) / 10;
+    sumEl.innerHTML = `<b>${cal} kcal</b> | P:${p}g C:${c}g F:${f}g`;
+  }
+}
+
+function updateBatchTray() {
+  const keys = Object.keys(selected);
+  const tray = document.getElementById('batchTray');
+  if (keys.length === 0) {
+    if (tray.classList.contains('show')) {
+      anime({ targets: tray, translateY: [0, 100], opacity: [1, 0], duration: 300, easing: 'easeInExpo', complete: () => tray.classList.remove('show') });
+    }
+    return;
+  }
+
+  let totalCal = 0, totalP = 0, totalC = 0, totalF = 0;
+  keys.forEach(id => {
+    const { food, quantity } = selected[id];
+    totalCal += food.calories * quantity;
+    totalP += food.protein_g * quantity;
+    totalC += food.carbs_g * quantity;
+    totalF += food.fats_g * quantity;
+  });
+
+  document.getElementById('batchCount').textContent = `${keys.length} item${keys.length > 1 ? 's' : ''} selected`;
+  document.getElementById('batchTotal').textContent = `${Math.round(totalCal)} kcal | P:${Math.round(totalP)}g C:${Math.round(totalC)}g F:${Math.round(totalF)}g`;
+
+  if (!tray.classList.contains('show')) {
+    tray.classList.add('show');
+    anime({ targets: tray, translateY: [100, 0], opacity: [0, 1], duration: 400, easing: 'spring(1, 80, 10, 0)' });
+  }
 }
 
 // Search
@@ -188,75 +291,39 @@ document.getElementById('searchInput').addEventListener('input', (e) => {
   }, 300);
 });
 
-// Quantity panel
-function openQty(food) {
-  selectedFood = food;
-  quantity = 1;
-  const panel = document.getElementById('qtyPanel');
-  panel.style.display = 'block';
-  const iconContainer = document.getElementById('qtyIcon');
-  iconContainer.innerHTML = '';
-  iconContainer.appendChild(renderFoodIcon(food.icon_type, food.icon_key, 48));
-  document.getElementById('qtyFoodName').textContent = food.name;
-  document.getElementById('qtyServing').textContent = `Serving: ${food.serving_size} ${food.serving_unit}`;
-  updateQtyDisplay();
-  anime({ targets: panel, opacity: [0,1], translateY: [20, 0], duration: 400, easing: 'spring(1, 80, 10, 0)' });
-  panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
-}
+// Batch submission
+document.getElementById('batchBtn').addEventListener('click', async () => {
+  const keys = Object.keys(selected);
+  if (!keys.length || !dailyLog) return;
 
-function updateQtyDisplay() {
-  document.getElementById('qtyVal').textContent = quantity;
-  if (!selectedFood) return;
-  const cal = Math.round(selectedFood.calories * quantity);
-  const p = Math.round(selectedFood.protein_g * quantity * 10) / 10;
-  const c = Math.round(selectedFood.carbs_g * quantity * 10) / 10;
-  const f = Math.round(selectedFood.fats_g * quantity * 10) / 10;
-  document.getElementById('qtyComputed').innerHTML = `<b>${cal} kcal</b> | P:${p}g C:${c}g F:${f}g`;
-}
-
-document.getElementById('qtyInc').addEventListener('click', () => {
-  quantity = Math.round((quantity + 0.5) * 10) / 10;
-  anime({ targets: '#qtyVal', translateY: [-10, 0], duration: 200, easing: 'easeOutExpo' });
-  updateQtyDisplay();
-});
-document.getElementById('qtyDec').addEventListener('click', () => {
-  if (quantity > 0.5) quantity = Math.round((quantity - 0.5) * 10) / 10;
-  anime({ targets: '#qtyVal', translateY: [10, 0], duration: 200, easing: 'easeOutExpo' });
-  updateQtyDisplay();
-});
-document.getElementById('qtyCancel').addEventListener('click', () => {
-  anime({ targets: '#qtyPanel', opacity: 0, translateY: 20, duration: 200, complete: () => {
-    document.getElementById('qtyPanel').style.display = 'none';
-  }});
-  selectedFood = null;
-});
-
-// Add entry
-document.getElementById('qtyAdd').addEventListener('click', async () => {
-  if (!selectedFood || !dailyLog) return;
-  const btn = document.getElementById('qtyAdd');
-  anime({ targets: btn, scale: [1, 0.94, 1], duration: 200 });
+  const btn = document.getElementById('batchBtn');
   btn.disabled = true;
   btn.textContent = 'Adding…';
+  anime({ targets: btn, scale: [1, 0.94, 1], duration: 200 });
 
   const user = await getCurrentUser();
   if (!user) return;
   const userId = user.$id;
 
   try {
-    await databases.createDocument(DATABASE_ID, COL_MEAL_ENTRIES, ID.unique(), {
-      user_id: userId,
-      daily_log_id: dailyLog.$id,
-      food_item_id: selectedFood.$id,
-      meal_slot: slot,
-      quantity,
-      calories_consumed: Math.round(selectedFood.calories * quantity * 10) / 10,
-      protein_consumed_g: Math.round(selectedFood.protein_g * quantity * 10) / 10,
-      carbs_consumed_g: Math.round(selectedFood.carbs_g * quantity * 10) / 10,
-      fats_consumed_g: Math.round(selectedFood.fats_g * quantity * 10) / 10,
-      logged_at: new Date().toISOString(),
-      note: document.getElementById('noteInput').value.trim()
-    }, userPermissions(userId));
+    // Create all entries in parallel
+    const promises = keys.map(id => {
+      const { food, quantity } = selected[id];
+      return databases.createDocument(DATABASE_ID, COL_MEAL_ENTRIES, ID.unique(), {
+        user_id: userId,
+        daily_log_id: dailyLog.$id,
+        food_item_id: food.$id,
+        meal_slot: slot,
+        quantity,
+        calories_consumed: Math.round(food.calories * quantity * 10) / 10,
+        protein_consumed_g: Math.round(food.protein_g * quantity * 10) / 10,
+        carbs_consumed_g: Math.round(food.carbs_g * quantity * 10) / 10,
+        fats_consumed_g: Math.round(food.fats_g * quantity * 10) / 10,
+        logged_at: new Date().toISOString(),
+        note: ''
+      }, userPermissions(userId));
+    });
+    await Promise.all(promises);
 
     // Recalculate totals
     const entries = await databases.listDocuments(DATABASE_ID, COL_MEAL_ENTRIES, [
@@ -270,14 +337,14 @@ document.getElementById('qtyAdd').addEventListener('click', async () => {
       updated_at: new Date().toISOString()
     });
 
-    // Success flash
+    // Success
     anime({ targets: btn, backgroundColor: ['#7c5cfc','#22d3a0','#7c5cfc'], duration: 600 });
-    showToast('Entry added!');
+    showToast(`${keys.length} item${keys.length > 1 ? 's' : ''} added!`);
     setTimeout(() => { window.location.href = '2_dashboard.html'; }, 600);
   } catch (e) {
-    showToast(e.message || 'Failed to add entry', 'error');
+    showToast(e.message || 'Failed to add entries', 'error');
     btn.disabled = false;
-    btn.textContent = 'Add Entry';
+    btn.textContent = 'Add All';
   }
 });
 </script>

@@ -114,7 +114,7 @@ export function renderFoodIcon(icon_type, icon_key, size = 40) {
   }
   if (icon_type === 'photo') {
     const img = document.createElement('img');
-    img.src = storage.getFilePreview(BUCKET_FOOD_PHOTOS, icon_key);
+    img.src = storage.getFilePreview(BUCKET_FOOD_PHOTOS, icon_key).toString();
     img.style.cssText = `width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;`;
     img.alt = 'food';
     return img;

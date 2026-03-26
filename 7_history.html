@@ -57,8 +57,22 @@ h1,h2,h3{font-family:'Space Grotesk',sans-serif}
 .sheet-macro-val{font-size:.75rem;color:var(--muted);min-width:50px;text-align:right}
 .sheet-mood{font-size:1.2rem;margin-bottom:8px}
 .sheet-section{font-size:.82rem;font-weight:600;color:var(--muted);margin:12px 0 6px;text-transform:uppercase;letter-spacing:1px}
-.sheet-meal-item{padding:6px 0;border-bottom:1px solid var(--border);font-size:.85rem;display:flex;justify-content:space-between}
+.sheet-meal-item{padding:10px 0;border-bottom:1px solid var(--border);font-size:.85rem}
 .sheet-meal-item:last-child{border-bottom:none}
+.meal-item-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+.meal-item-name{font-weight:600}
+.meal-item-actions{display:flex;gap:6px}
+.meal-action-btn{background:none;border:none;color:var(--muted);font-size:.9rem;cursor:pointer;padding:2px}
+.meal-action-btn:hover{color:var(--accent)}
+.meal-action-btn.del{color:rgba(244,63,94,.7)}
+.meal-action-btn.del:hover{color:var(--red)}
+.meal-item-meta{color:var(--muted);font-size:.8rem}
+.inline-edit-wrap{display:none;background:var(--elevated);padding:10px;border-radius:10px;margin-top:8px}
+.inline-edit-wrap.show{display:flex;align-items:center;gap:8px}
+.inline-edit-wrap input{width:60px;padding:6px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.85rem;text-align:center;outline:none}
+.inline-edit-wrap button{padding:6px 10px;border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;border:none}
+.inline-edit-save{background:var(--accent);color:#fff}
+.inline-edit-cancel{background:transparent;color:var(--muted);border:1px solid var(--border)}
 .sheet-note{font-style:italic;color:var(--muted);font-size:.85rem;margin-top:8px}
 /* Weight chart */
 .weight-chart-label{color:var(--muted);font-size:.82rem;text-align:center;margin-top:6px}
@@ -125,8 +139,8 @@ h1,h2,h3{font-family:'Space Grotesk',sans-serif}
 </nav>
 
 <script type="module">
-import { getCurrentUser, databases, Query,
-         DATABASE_ID, COL_USERS_PROFILE, COL_DAILY_LOGS, COL_MEAL_ENTRIES, COL_WEIGHT_HISTORY
+import { getCurrentUser, databases, Query, ID, userPermissions,
+         DATABASE_ID, COL_USERS_PROFILE, COL_DAILY_LOGS, COL_MEAL_ENTRIES, COL_WEIGHT_HISTORY, COL_FOOD_ITEMS
        } from './appwrite.js';
 
 function showToast(msg, type='success') {
@@ -298,33 +312,155 @@ async function openDayDetail(dateStr, log) {
 
     // Lazy load entries
     try {
-      const entries = await databases.listDocuments(DATABASE_ID, COL_MEAL_ENTRIES, [
-        Query.equal('daily_log_id', log.$id), Query.limit(50)
+      const entriesRes = await databases.listDocuments(DATABASE_ID, COL_MEAL_ENTRIES, [
+        Query.equal('daily_log_id', log.$id), Query.limit(100)
       ]);
+      const entries = entriesRes.documents;
       const mealsDiv = document.getElementById('sheetMeals');
-      if (!entries.documents.length) {
+      if (!entries.length) {
         mealsDiv.innerHTML = '<div style="color:var(--muted);font-size:.82rem">No entries</div>';
       } else {
+        // Fetch corresponding food items to resolve names
+        let foodMap = {};
+        try {
+          const foodIds = [...new Set(entries.map(e => e.food_item_id))];
+          if (foodIds.length > 0) {
+            // Appwrite limit is 100 queries, chunking logic omitted since lists are small
+            const foodRes = await databases.listDocuments(DATABASE_ID, COL_FOOD_ITEMS, [
+              Query.equal('$id', foodIds), Query.limit(100)
+            ]);
+            foodRes.documents.forEach(f => { foodMap[f.$id] = f; });
+          }
+        } catch(e) { console.error('Failed to load foods', e); }
+
         const slotMap = { breakfast: [], lunch: [], dinner: [], snack: [] };
-        entries.documents.forEach(e => { (slotMap[e.meal_slot] || slotMap.snack).push(e); });
+        entries.forEach(e => { (slotMap[e.meal_slot] || slotMap.snack).push(e); });
+        
         let mealsHtml = '';
         ['breakfast', 'lunch', 'dinner', 'snack'].forEach(s => {
           if (slotMap[s].length) {
             mealsHtml += `<div style="font-size:.82rem;font-weight:600;color:var(--muted);margin:8px 0 4px;text-transform:capitalize">${s}</div>`;
             slotMap[s].forEach(e => {
-              mealsHtml += `<div class="sheet-meal-item"><span>${e.quantity}× (${Math.round(e.calories_consumed)} kcal)</span><span style="color:var(--muted)">P:${Math.round(e.protein_consumed_g)}g C:${Math.round(e.carbs_consumed_g)}g F:${Math.round(e.fats_consumed_g)}g</span></div>`;
+              const food = foodMap[e.food_item_id];
+              const fName = food ? food.name : 'Unknown Food';
+              mealsHtml += `<div class="sheet-meal-item" id="meal-${e.$id}">
+                <div class="meal-item-header">
+                  <span class="meal-item-name">${fName}</span>
+                  <div class="meal-item-actions">
+                    <button class="meal-action-btn edit-entry" data-id="${e.$id}" data-foodid="${e.food_item_id}">✏️</button>
+                    <button class="meal-action-btn del del-entry" data-id="${e.$id}">🗑️</button>
+                  </div>
+                </div>
+                <div class="meal-item-meta">
+                  <span id="qty-text-${e.$id}">${e.quantity}</span>× (${Math.round(e.calories_consumed)} kcal) 
+                  — P:${Math.round(e.protein_consumed_g)}g C:${Math.round(e.carbs_consumed_g)}g F:${Math.round(e.fats_consumed_g)}g
+                </div>
+                <div class="inline-edit-wrap" id="edit-wrap-${e.$id}">
+                  <span style="font-size:.8rem;color:var(--muted)">Qty:</span>
+                  <input type="number" id="edit-qty-${e.$id}" value="${e.quantity}" min="0.1" step="0.1">
+                  <button class="inline-edit-save save-entry" data-id="${e.$id}" data-logid="${log.$id}" data-foodid="${e.food_item_id}">Save</button>
+                  <button class="inline-edit-cancel cancel-entry" data-id="${e.$id}">Cancel</button>
+                </div>
+              </div>`;
             });
           }
         });
         mealsDiv.innerHTML = mealsHtml;
+
+        // Wire events
+        mealsDiv.querySelectorAll('.edit-entry').forEach(btn => btn.addEventListener('click', (e) => {
+          const id = e.currentTarget.dataset.id;
+          document.getElementById('edit-wrap-' + id).classList.add('show');
+        }));
+        mealsDiv.querySelectorAll('.cancel-entry').forEach(btn => btn.addEventListener('click', (e) => {
+          const id = e.currentTarget.dataset.id;
+          document.getElementById('edit-wrap-' + id).classList.remove('show');
+        }));
+        mealsDiv.querySelectorAll('.save-entry').forEach(btn => btn.addEventListener('click', async (e) => {
+          const id = e.currentTarget.dataset.id;
+          const logId = e.currentTarget.dataset.logid;
+          const foodId = e.currentTarget.dataset.foodid;
+          const newQty = parseFloat(document.getElementById('edit-qty-' + id).value);
+          if (!newQty || newQty <= 0) return;
+          
+          btn.textContent = '...';
+          btn.disabled = true;
+          try {
+            const food = foodMap[foodId];
+            if (!food) throw new Error('Food data missing');
+            
+            await databases.updateDocument(DATABASE_ID, COL_MEAL_ENTRIES, id, {
+              quantity: newQty,
+              calories_consumed: Math.round(food.calories * newQty * 10) / 10,
+              protein_consumed_g: Math.round(food.protein_g * newQty * 10) / 10,
+              carbs_consumed_g: Math.round(food.carbs_g * newQty * 10) / 10,
+              fats_consumed_g: Math.round(food.fats_g * newQty * 10) / 10
+            });
+            await recalculateDailyLog(logId);
+            showToast('Entry updated!');
+            openDayDetail(dateStr, log); // reload sheet
+            await loadMonth(); // refresh calendar
+          } catch(err) {
+            showToast('Update failed', 'error');
+            btn.textContent = 'Save';
+            btn.disabled = false;
+          }
+        }));
+        mealsDiv.querySelectorAll('.del-entry').forEach(btn => btn.addEventListener('click', async (e) => {
+          if (!confirm('Delete this entry?')) return;
+          const id = e.currentTarget.dataset.id;
+          btn.disabled = true;
+          try {
+            await databases.deleteDocument(DATABASE_ID, COL_MEAL_ENTRIES, id);
+            await recalculateDailyLog(log.$id);
+            showToast('Entry deleted');
+            openDayDetail(dateStr, log); // reload sheet
+            await loadMonth(); // refresh calendar
+          } catch(err) {
+            showToast('Delete failed', 'error');
+            btn.disabled = false;
+          }
+        }));
       }
     } catch (_) {
-      document.getElementById('sheetMeals').innerHTML = '<div style="color:var(--red);font-size:.82rem">Failed to load</div>';
+      document.getElementById('sheetMeals').innerHTML = '<div style="color:var(--red);font-size:.82rem">Failed to load meals</div>';
     }
   }
 
   backdrop.classList.add('show');
   anime({ targets: sheet, translateY: ['100%', '0%'], duration: 500, easing: 'spring(1, 80, 10, 0)' });
+}
+
+// Helper to recalculate log totals after edit/delete
+async function recalculateDailyLog(logId) {
+  const entries = await databases.listDocuments(DATABASE_ID, COL_MEAL_ENTRIES, [
+    Query.equal('daily_log_id', logId), Query.limit(100)
+  ]);
+  let tc=0,tp=0,tca=0,tf=0;
+  entries.documents.forEach(e => { tc+=e.calories_consumed; tp+=e.protein_consumed_g; tca+=e.carbs_consumed_g; tf+=e.fats_consumed_g; });
+  
+  let currentLog;
+  if(profile) {
+      const calRemain = profile.daily_calorie_target - tc;
+      const calDeficit = profile.maintenance_calories - tc;
+      currentLog = await databases.updateDocument(DATABASE_ID, COL_DAILY_LOGS, logId, {
+        total_calories: Math.round(tc), total_protein_g: Math.round(tp*10)/10,
+        total_carbs_g: Math.round(tca*10)/10, total_fats_g: Math.round(tf*10)/10,
+        calories_remaining: Math.round(calRemain), calorie_deficit: Math.round(calDeficit),
+        updated_at: new Date().toISOString()
+      });
+  } else {
+      currentLog = await databases.updateDocument(DATABASE_ID, COL_DAILY_LOGS, logId, {
+        total_calories: Math.round(tc), total_protein_g: Math.round(tp*10)/10,
+        total_carbs_g: Math.round(tca*10)/10, total_fats_g: Math.round(tf*10)/10,
+        updated_at: new Date().toISOString()
+      });
+  }
+  
+  // update the active log memory object if that day is still open
+  if (currentLog && logsMap[currentLog.log_date]) {
+     logsMap[currentLog.log_date] = currentLog;
+  }
 }
 
 // Weight chart

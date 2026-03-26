@@ -137,7 +137,7 @@ h1,h2,h3{font-family:'Space Grotesk',sans-serif}
 </nav>
 
 <script type="module">
-import { getCurrentUser, databases, storage, ID, Query,
+import { getCurrentUser, databases, storage, ID, Query, Permission, Role,
          DATABASE_ID, COL_FOOD_ITEMS, BUCKET_FOOD_PHOTOS,
          renderFoodIcon, userPermissions } from './appwrite.js';
 
@@ -278,7 +278,9 @@ document.getElementById('foodForm').addEventListener('submit', async (e) => {
 
     // Upload photo if needed
     if (photoFile) {
-      const uploaded = await storage.createFile(BUCKET_FOOD_PHOTOS, ID.unique(), photoFile);
+      const uploaded = await storage.createFile(BUCKET_FOOD_PHOTOS, ID.unique(), photoFile, [
+        Permission.read(Role.any())
+      ]);
       iconKey = uploaded.$id;
       iconType = 'photo';
     }
